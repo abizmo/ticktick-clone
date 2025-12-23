@@ -1,4 +1,4 @@
-export const NavigationContainer = ({ children }) => children;
+export const NavigationContainer = ({children}) => children;
 
 export const useNavigation = () => ({
   navigate: jest.fn(),
@@ -13,12 +13,12 @@ export const useNavigation = () => ({
 });
 
 export const useRoute = () => ({
-  key: "test-route",
-  name: "TestScreen",
+  key: 'test-route',
+  name: 'TestScreen',
   params: {},
 });
 
-export const useFocusEffect = (callback) => {
+export const useFocusEffect = callback => {
   callback();
 };
 

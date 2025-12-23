@@ -34,7 +34,9 @@ const TaskItem = ({task}: {task: Task}) => {
   };
 
   const formatDate = (date: Date | undefined) => {
-    if (!date) return '';
+    if (!date) {
+      return '';
+    }
     return new Intl.DateTimeFormat('en-US', {
       month: 'short',
       day: 'numeric',
@@ -50,15 +52,16 @@ const TaskItem = ({task}: {task: Task}) => {
           color={task.completed ? '#34C759' : '#007AFF'}
         />
       </TouchableOpacity>
-      
+
       <View style={styles.taskContent}>
-        <Text style={[styles.taskTitle, task.completed && styles.completedTask]}>
+        <Text
+          style={[styles.taskTitle, task.completed && styles.completedTask]}>
           {task.title}
         </Text>
         {task.description && (
           <Text style={styles.taskDescription}>{task.description}</Text>
         )}
-        
+
         <View style={styles.taskMeta}>
           {task.dueDate && (
             <View style={styles.metaItem}>
@@ -66,8 +69,12 @@ const TaskItem = ({task}: {task: Task}) => {
               <Text style={styles.metaText}>{formatDate(task.dueDate)}</Text>
             </View>
           )}
-          
-          <View style={[styles.priorityBadge, {backgroundColor: getPriorityColor(task.priority)}]}>
+
+          <View
+            style={[
+              styles.priorityBadge,
+              {backgroundColor: getPriorityColor(task.priority)},
+            ]}>
             <Text style={styles.priorityText}>{task.priority}</Text>
           </View>
         </View>
@@ -78,7 +85,7 @@ const TaskItem = ({task}: {task: Task}) => {
 
 function TaskListScreen({route}: TaskListScreenProps) {
   const {listId, listName} = route.params;
-  
+
   const filteredTasks = mockTasks.filter(task => task.listId === listId);
   const completedTasks = filteredTasks.filter(task => task.completed);
   const pendingTasks = filteredTasks.filter(task => !task.completed);

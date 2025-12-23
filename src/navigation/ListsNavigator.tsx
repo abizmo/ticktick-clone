@@ -14,19 +14,20 @@ const CustomDrawerContent = ({navigation}: any) => {
       <View style={styles.drawerHeader}>
         <Text style={styles.drawerHeaderText}>My Lists</Text>
       </View>
-      
+
       {mockLists.map(list => (
         <TouchableOpacity
           key={list.id}
           style={styles.drawerItem}
-          onPress={() => navigation.navigate('TaskList', {listId: list.id, listName: list.name})}>
+          onPress={() =>
+            navigation.navigate('TaskList', {
+              listId: list.id,
+              listName: list.name,
+            })
+          }>
           <View style={styles.drawerItemContent}>
             <View style={styles.iconContainer}>
-              <Icon 
-                name={list.icon} 
-                size={20} 
-                color={list.color} 
-              />
+              <Icon name={list.icon} size={20} color={list.color} />
             </View>
             <View style={styles.textContainer}>
               <Text style={styles.listName}>{list.name}</Text>
@@ -35,7 +36,7 @@ const CustomDrawerContent = ({navigation}: any) => {
           </View>
         </TouchableOpacity>
       ))}
-      
+
       <TouchableOpacity style={styles.addListButton}>
         <Icon name="add-circle-outline" size={20} color="#007AFF" />
         <Text style={styles.addListText}>Add New List</Text>
@@ -61,8 +62,8 @@ function ListsNavigator() {
           fontWeight: 'bold',
         },
       }}>
-      <Drawer.Screen 
-        name="TaskList" 
+      <Drawer.Screen
+        name="TaskList"
         component={TaskListScreen}
         initialParams={{listId: '1', listName: 'Inbox'}}
         options={({route}: any) => ({

@@ -1,16 +1,16 @@
 module.exports = {
-  preset: "react-native",
-  setupFilesAfterEnv: ["<rootDir>/jest.setup.js"],
-  moduleFileExtensions: ["ts", "tsx", "js", "jsx", "json", "node"],
+  preset: 'react-native',
+  setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
+  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
   transformIgnorePatterns: [
-    "node_modules/(?!(react-native|@react-native|@react-navigation|react-native-vector-icons|react-native-gesture-handler|react-native-reanimated|react-native-safe-area-context|react-native-screens)/)",
+    'node_modules/(?!(react-native|@react-native|@react-navigation|react-native-vector-icons|react-native-gesture-handler|react-native-reanimated|react-native-safe-area-context|react-native-screens)/)',
   ],
   collectCoverageFrom: [
-    "src/**/*.{ts,tsx}",
-    "App.tsx",
-    "!src/**/*.d.ts",
-    "!src/**/__tests__/**",
-    "!src/**/__mocks__/**",
+    'src/**/*.{ts,tsx}',
+    'App.tsx',
+    '!src/**/*.d.ts',
+    '!src/**/__tests__/**',
+    '!src/**/__mocks__/**',
   ],
   coverageThreshold: {
     global: {
@@ -21,10 +21,10 @@ module.exports = {
     },
   },
   testMatch: [
-    "**/__tests__/**/*.test.[jt]s?(x)",
-    "**/?(*.)+(spec|test).[jt]s?(x)",
+    '**/__tests__/**/*.test.[jt]s?(x)',
+    '**/?(*.)+(spec|test).[jt]s?(x)',
   ],
   moduleNameMapper: {
-    "^@/(.*)$": "<rootDir>/src/$1",
+    '^@/(.*)$': '<rootDir>/src/$1',
   },
 };

@@ -51,7 +51,7 @@ The app includes the following screens:
 Before you begin, ensure you have the following installed:
 
 - **Node.js** >= 18.x
-- **npm** or **yarn**
+- **pnpm** >= 8.x
 - **React Native CLI** (not Expo)
 - **iOS Development**: Xcode 14+ (macOS only)
 - **Android Development**: Android Studio with SDK 21+
@@ -72,7 +72,7 @@ cd ticktick-clone
 ### 2. Install dependencies
 
 ```bash
-npm install
+pnpm install
 ```
 
 ### 3. Install iOS pods (macOS only)
@@ -86,13 +86,13 @@ cd ios && pod install && cd ..
 **For iOS:**
 
 ```bash
-npm run ios
+pnpm run ios
 ```
 
 **For Android:**
 
 ```bash
-npm run android
+pnpm run android
 ```
 
 > **Troubleshooting**: If you encounter build issues, try cleaning the build cache:
@@ -104,15 +104,15 @@ npm run android
 
 ## Available Scripts
 
-| Command                 | Description              |
-| ----------------------- | ------------------------ |
-| `npm start`             | Start Metro bundler      |
-| `npm run ios`           | Run on iOS simulator     |
-| `npm run android`       | Run on Android emulator  |
-| `npm test`              | Run all tests once       |
-| `npm run test:watch`    | Run tests in watch mode  |
-| `npm run test:coverage` | Generate coverage report |
-| `npm run lint`          | Run ESLint               |
+| Command              | Description              |
+| -------------------- | ------------------------ |
+| `pnpm start`         | Start Metro bundler      |
+| `pnpm run ios`       | Run on iOS simulator     |
+| `pnpm run android`   | Run on Android emulator  |
+| `pnpm test`          | Run all tests once       |
+| `pnpm test:watch`    | Run tests in watch mode  |
+| `pnpm test:coverage` | Generate coverage report |
+| `pnpm run lint`      | Run ESLint               |
 
 ---
 
@@ -153,13 +153,13 @@ Coverage:    79.48% lines | 76.56% statements | 72% functions | 48.8% branches
 
 ```bash
 # Run all tests
-npm test
+pnpm test
 
 # Run tests in watch mode (recommended for development)
-npm run test:watch
+pnpm test:watch
 
 # Generate coverage report
-npm run test:coverage
+pnpm test:coverage
 ```
 
 For detailed testing information, see [TESTING_GUIDE.md](./TESTING_GUIDE.md)
