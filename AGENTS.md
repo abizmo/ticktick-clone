@@ -4,12 +4,12 @@ Guidelines for AI coding agents working in this React Native (0.74.1) TickTick c
 
 ## Build/Lint/Test Commands
 
-- `npm test` - Run all Jest tests
-- `npm test -- <test-file-pattern>` - Run single test file (e.g., `npm test -- TaskListScreen`)
-- `npm run lint` - Run ESLint on all files
-- `npm run ios` - Run on iOS simulator
-- `npm run android` - Run on Android emulator
-- `npm start` - Start Metro bundler
+- `pnpm test` - Run all Jest tests
+- `pnpm test <test-file-pattern>` - Run single test file (e.g., `pnpm test TaskListScreen`)
+- `pnpm run lint` - Run ESLint on all files
+- `pnpm run ios` - Run on iOS simulator
+- `pnpm run android` - Run on Android emulator
+- `pnpm start` - Start Metro bundler
 
 ## Code Style Guidelines
 

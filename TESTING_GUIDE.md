@@ -5,37 +5,37 @@
 ### Run All Tests
 
 ```bash
-npm test
+pnpm test
 ```
 
 ### Run Tests in Watch Mode
 
 ```bash
-npm run test:watch
+pnpm test:watch
 ```
 
 ### Run Tests with Coverage Report
 
 ```bash
-npm run test:coverage
+pnpm test:coverage
 ```
 
 ### Run Tests with Verbose Output
 
 ```bash
-npm run test:verbose
+pnpm test:verbose
 ```
 
 ### Run Specific Test File
 
 ```bash
-npm test -- TaskListScreen
+pnpm test TaskListScreen
 ```
 
 ### Run Tests Matching Pattern
 
 ```bash
-npm test -- --testNamePattern="should render"
+pnpm test --testNamePattern="should render"
 ```
 
 ## Test File Locations
@@ -56,7 +56,7 @@ __tests__/
 
 ## Coverage Report Location
 
-After running `npm run test:coverage`, view the detailed HTML report:
+After running `pnpm test:coverage`, view the detailed HTML report:
 
 ```bash
 open coverage/lcov-report/index.html
@@ -85,7 +85,7 @@ open coverage/lcov-report/index.html
 
 ```bash
 # Run in watch mode
-npm run test:watch
+pnpm test:watch
 
 # Then press 'p' to filter by test name
 # Or press 'f' to run only failed tests
@@ -94,19 +94,19 @@ npm run test:watch
 ### Update Test Snapshots (if added in future)
 
 ```bash
-npm test -- -u
+pnpm test -u
 ```
 
 ### Clear Jest Cache
 
 ```bash
-npx jest --clearCache
+pnpm exec jest --clearCache
 ```
 
 ### Run Tests with Coverage for Specific File
 
 ```bash
-npm test -- TaskListScreen --coverage
+pnpm test TaskListScreen --coverage
 ```
 
 ## Test Writing Guidelines
@@ -200,8 +200,11 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: "18"
-      - run: npm ci
-      - run: npm test -- --coverage --ci
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 8
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm test --coverage --ci
       - uses: codecov/codecov-action@v3
 ```
 
@@ -211,10 +214,10 @@ jobs:
 
 ```bash
 # Install missing dependencies
-npm install
+pnpm install
 
 # Clear cache
-npx jest --clearCache
+pnpm exec jest --clearCache
 ```
 
 ### Tests Timing Out

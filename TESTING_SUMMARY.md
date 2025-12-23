@@ -578,10 +578,10 @@ These failures are non-critical formatting issues:
 
 ```bash
 # Run tests before commit
-npm test
+pnpm test
 
 # Run linter
-npm run lint
+pnpm run lint
 ```
 
 ### CI/CD Pipeline
@@ -589,7 +589,7 @@ npm run lint
 ```yaml
 # Example GitHub Actions workflow
 - name: Run Tests
-  run: npm test -- --coverage --ci
+  run: pnpm test --coverage --ci
 
 - name: Upload Coverage
   uses: codecov/codecov-action@v3
@@ -657,7 +657,7 @@ All tests follow the clear structure:
 
 ### Debugging Failed Tests
 
-1. Run test in watch mode: `npm run test:watch`
+1. Run test in watch mode: `pnpm test:watch`
 2. Use `--verbose` flag for detailed output
 3. Add console.log for debugging (remove after)
 4. Check mock configurations
