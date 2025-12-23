@@ -22,21 +22,23 @@ function FocusScreen() {
   };
 
   const formatDate = (date: Date | undefined) => {
-    if (!date) return '';
+    if (!date) {
+      return '';
+    }
     const today = new Date();
     const taskDate = new Date(date);
-    
+
     if (taskDate.toDateString() === today.toDateString()) {
       return 'Today';
     }
-    
+
     const tomorrow = new Date(today);
     tomorrow.setDate(today.getDate() + 1);
-    
+
     if (taskDate.toDateString() === tomorrow.toDateString()) {
       return 'Tomorrow';
     }
-    
+
     return new Intl.DateTimeFormat('en-US', {
       month: 'short',
       day: 'numeric',
@@ -56,15 +58,18 @@ function FocusScreen() {
           )}
         </View>
       </View>
-      
+
       <View style={styles.taskFooter}>
         <View style={styles.listBadge}>
-          <View 
-            style={[styles.listIndicator, {backgroundColor: getListColor(item.listId)}]} 
+          <View
+            style={[
+              styles.listIndicator,
+              {backgroundColor: getListColor(item.listId)},
+            ]}
           />
           <Text style={styles.listName}>{getListName(item.listId)}</Text>
         </View>
-        
+
         {item.dueDate && (
           <View style={styles.dueDateContainer}>
             <Icon name="calendar-outline" size={12} color="#666" />

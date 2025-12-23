@@ -24,12 +24,17 @@ function SettingsScreen() {
     onToggle,
     onPress,
   }: any) => (
-    <TouchableOpacity 
-      style={styles.settingItem} 
+    <TouchableOpacity
+      style={styles.settingItem}
       onPress={onPress}
       disabled={hasToggle}>
       <View style={styles.settingContent}>
-        <Icon name={icon} size={24} color="#007AFF" style={styles.settingIcon} />
+        <Icon
+          name={icon}
+          size={24}
+          color="#007AFF"
+          style={styles.settingIcon}
+        />
         <View style={styles.settingText}>
           <Text style={styles.settingTitle}>{title}</Text>
           {subtitle && <Text style={styles.settingSubtitle}>{subtitle}</Text>}
@@ -61,7 +66,9 @@ function SettingsScreen() {
         <Text style={styles.headerTitle}>Settings</Text>
       </View>
 
-      <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={styles.scrollContainer}
+        showsVerticalScrollIndicator={false}>
         <SettingSection title="Notifications">
           <SettingItem
             icon="notifications-outline"

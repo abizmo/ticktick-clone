@@ -17,7 +17,7 @@ function CalendarScreen() {
     const dates = [];
     const startOfWeek = new Date(selectedDate);
     startOfWeek.setDate(selectedDate.getDate() - selectedDate.getDay());
-    
+
     for (let i = 0; i < 7; i++) {
       const date = new Date(startOfWeek);
       date.setDate(startOfWeek.getDate() + i);
@@ -28,7 +28,9 @@ function CalendarScreen() {
 
   const getTasksForDate = (date: Date) => {
     return mockTasks.filter(task => {
-      if (!task.dueDate) return false;
+      if (!task.dueDate) {
+        return false;
+      }
       const taskDate = new Date(task.dueDate);
       return taskDate.toDateString() === date.toDateString();
     });
@@ -70,15 +72,17 @@ function CalendarScreen() {
 
       <View style={styles.weekContainer}>
         {weekDates.map((date, index) => {
-          const isSelected = date.toDateString() === selectedDate.toDateString();
+          const isSelected =
+            date.toDateString() === selectedDate.toDateString();
           const tasksCount = getTasksForDate(date).length;
-          
+
           return (
             <TouchableOpacity
               key={index}
               style={[styles.dayButton, isSelected && styles.selectedDay]}
               onPress={() => setSelectedDate(date)}>
-              <Text style={[styles.dayText, isSelected && styles.selectedDayText]}>
+              <Text
+                style={[styles.dayText, isSelected && styles.selectedDayText]}>
                 {formatDate(date)}
               </Text>
               {tasksCount > 0 && (
@@ -91,11 +95,13 @@ function CalendarScreen() {
         })}
       </View>
 
-      <ScrollView style={styles.tasksContainer} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={styles.tasksContainer}
+        showsVerticalScrollIndicator={false}>
         <Text style={styles.tasksHeader}>
           Tasks for {formatDate(selectedDate)}
         </Text>
-        
+
         {selectedDateTasks.length === 0 ? (
           <View style={styles.emptyState}>
             <Icon name="calendar-outline" size={48} color="#ccc" />
@@ -111,21 +117,30 @@ function CalendarScreen() {
                   color={task.completed ? '#34C759' : '#007AFF'}
                 />
               </TouchableOpacity>
-              
+
               <View style={styles.taskContent}>
-                <Text style={[styles.taskTitle, task.completed && styles.completedTask]}>
+                <Text
+                  style={[
+                    styles.taskTitle,
+                    task.completed && styles.completedTask,
+                  ]}>
                   {task.title}
                 </Text>
                 {task.description && (
                   <Text style={styles.taskDescription}>{task.description}</Text>
                 )}
-                
+
                 <View style={styles.taskMeta}>
                   <View style={styles.listBadge}>
-                    <View 
-                      style={[styles.listIndicator, {backgroundColor: getListColor(task.listId)}]} 
+                    <View
+                      style={[
+                        styles.listIndicator,
+                        {backgroundColor: getListColor(task.listId)},
+                      ]}
                     />
-                    <Text style={styles.listName}>{getListName(task.listId)}</Text>
+                    <Text style={styles.listName}>
+                      {getListName(task.listId)}
+                    </Text>
                   </View>
                 </View>
               </View>

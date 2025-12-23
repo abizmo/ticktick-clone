@@ -130,8 +130,10 @@ export const mockTasks: Task[] = [
   },
 ];
 
-export const focusTasks = mockTasks.filter(task => 
-  !task.completed && 
-  (task.priority === 'high' || 
-   (task.dueDate && new Date(task.dueDate) <= new Date(Date.now() + 24 * 60 * 60 * 1000)))
+export const focusTasks = mockTasks.filter(
+  task =>
+    !task.completed &&
+    (task.priority === 'high' ||
+      (task.dueDate &&
+        new Date(task.dueDate) <= new Date(Date.now() + 24 * 60 * 60 * 1000))),
 );
