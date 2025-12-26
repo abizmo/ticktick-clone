@@ -72,24 +72,24 @@ src/
 
 #### 0.1 Instalación de Dependencias
 
-- [ ] **0.1.1** Instalar Zustand: `pnpm add zustand`
-- [ ] **0.1.2** Instalar AsyncStorage: `pnpm add @react-native-async-storage/async-storage`
-- [ ] **0.1.3** Instalar notificaciones: `pnpm add react-native-push-notification @react-native-community/push-notification-ios`
-- [ ] **0.1.4** Configurar notificaciones en iOS (Podfile)
-- [ ] **0.1.5** Configurar notificaciones en Android (AndroidManifest.xml)
-- [ ] **0.1.6** Actualizar mocks de testing para nuevas dependencias
+- [x] **0.1.1** Instalar Zustand: `pnpm add zustand`
+- [x] **0.1.2** Instalar AsyncStorage: `pnpm add @react-native-async-storage/async-storage`
+- [x] **0.1.3** Instalar notificaciones: `pnpm add react-native-push-notification @react-native-community/push-notification-ios`
+- [x] **0.1.4** Configurar notificaciones en iOS (Podfile)
+- [x] **0.1.5** Configurar notificaciones en Android (AndroidManifest.xml)
+- [x] **0.1.6** Actualizar mocks de testing para nuevas dependencias
 
 #### 0.2 Estructura de Carpetas
 
-- [ ] **0.2.1** Crear carpeta `src/features/focus/`
-- [ ] **0.2.2** Crear subcarpetas: components, services, store, types, utils, screens
-- [ ] **0.2.3** Crear archivo `.gitkeep` en carpetas vacías
+- [x] **0.2.1** Crear carpeta `src/features/focus/`
+- [x] **0.2.2** Crear subcarpetas: components, services, store, types, utils, screens
+- [x] **0.2.3** Crear archivo `.gitkeep` en carpetas vacías
 
 #### 0.3 Backup de Código Actual
 
-- [ ] **0.3.1** Renombrar `FocusScreen.tsx` a `FocusScreen.old.tsx`
-- [ ] **0.3.2** Renombrar test `FocusScreen.test.tsx` a `FocusScreen.old.test.tsx`
-- [ ] **0.3.3** Documentar funcionalidad antigua en `docs/focus-legacy.md`
+- [x] **0.3.1** Renombrar `FocusScreen.tsx` a `FocusScreen.old.tsx`
+- [x] **0.3.2** Renombrar test `FocusScreen.test.tsx` a `FocusScreen.old.test.tsx`
+- [x] **0.3.3** Documentar funcionalidad antigua en `docs/focus-legacy.md`
 
 ---
 
@@ -209,6 +209,7 @@ src/
 
 - [ ] **4.1.1** Crear `src/features/focus/store/focusStore.ts`
 - [ ] **4.1.2** Definir estado inicial del store
+
   ```typescript
   interface FocusStoreState {
     // Timer state
@@ -233,6 +234,7 @@ src/
     loadSessions: () => Promise<void>;
   }
   ```
+
 - [ ] **4.1.3** Implementar store con Zustand
 - [ ] **4.1.4** Añadir middleware de persistencia (AsyncStorage)
 
@@ -626,13 +628,13 @@ src/
 ### Resumen de Tareas
 
 - **Total de tareas:** 200+
-- **Completadas:** 0
+- **Completadas:** 9
 - **En progreso:** 0
-- **Pendientes:** 200+
+- **Pendientes:** 191+
 
 ### Progreso por Fase
 
-- [ ] Fase 0: Preparación (0/6 tareas)
+- [x] Fase 0: Preparación (9/9 tareas) ✅ **COMPLETADA**
 - [ ] Fase 1: Modelo de Datos (0/5 tareas)
 - [ ] Fase 2: Almacenamiento (0/8 tareas)
 - [ ] Fase 3: Timer Service (0/14 tareas)
@@ -650,16 +652,16 @@ src/
 ### Estimación de Tiempo
 
 - **Tiempo estimado total:** 18-24 días de desarrollo
-- **Tiempo transcurrido:** 0 días
-- **Tiempo restante:** 18-24 días
+- **Tiempo transcurrido:** 0.5 días
+- **Tiempo restante:** 17.5-23.5 días
 
 ---
 
 ## 🎯 Próximos Pasos Inmediatos
 
 1. ✅ Revisar y aprobar este roadmap
-2. ⏭️ Comenzar Fase 0: Instalación de dependencias
-3. ⏭️ Crear estructura de carpetas
+2. ✅ Fase 0: Preparación y Setup (COMPLETADA)
+3. ⏭️ Comenzar Fase 1: Modelo de Datos y Tipos
 4. ⏭️ Definir interfaces TypeScript
 
 ---
@@ -688,12 +690,13 @@ src/
 
 ## 🔄 Historial de Cambios
 
-| Fecha      | Versión | Cambios                      |
-| ---------- | ------- | ---------------------------- |
-| 2025-12-26 | 1.0     | Creación inicial del roadmap |
+| Fecha      | Versión | Cambios                        |
+| ---------- | ------- | ------------------------------ |
+| 2025-12-26 | 1.0     | Creación inicial del roadmap   |
+| 2025-12-26 | 1.1     | Fase 0 completada (9/9 tareas) |
 
 ---
 
 **Última actualización:** 26 de Diciembre, 2025  
 **Responsable:** Equipo de Desarrollo  
-**Estado:** 🟡 Pendiente de aprobación
+**Estado:** 🟢 En progreso - Fase 0 completada
