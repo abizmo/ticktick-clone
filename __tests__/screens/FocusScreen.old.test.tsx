@@ -1,6 +1,6 @@
 import React from 'react';
 import {render} from '@testing-library/react-native';
-import FocusScreen from '../../src/screens/FocusScreen';
+import FocusScreen from '../../src/screens/FocusScreen.old';
 import {focusTasks, mockLists} from '../../src/data/mockData';
 
 describe('FocusScreen', () => {
