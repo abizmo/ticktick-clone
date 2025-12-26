@@ -97,8 +97,8 @@ src/
 
 #### 1.1 Interfaces TypeScript
 
-- [ ] **1.1.1** Crear `src/features/focus/types/focus.types.ts`
-- [ ] **1.1.2** Definir interface `FocusSession`
+- [x] **1.1.1** Crear `src/features/focus/types/focus.types.ts` - 👤 Coordinador
+- [x] **1.1.2** Definir interface `FocusSession` - 👤 Coordinador
   ```typescript
   interface FocusSession {
     id: string;
@@ -114,7 +114,7 @@ src/
     updatedAt: Date;
   }
   ```
-- [ ] **1.1.3** Definir interface `FocusSettings`
+- [x] **1.1.3** Definir interface `FocusSettings` - 👤 Coordinador
   ```typescript
   interface FocusSettings {
     pomoWorkDuration: number; // minutos
@@ -125,7 +125,7 @@ src/
     confirmStop: boolean;
   }
   ```
-- [ ] **1.1.4** Definir interface `TimerState`
+- [x] **1.1.4** Definir interface `TimerState` - 👤 Coordinador
   ```typescript
   interface TimerState {
     mode: 'pomodoro' | 'stopwatch';
@@ -136,14 +136,14 @@ src/
     pausesUsed: number;
   }
   ```
-- [ ] **1.1.5** Definir tipos auxiliares (enums, unions)
+- [x] **1.1.5** Definir tipos auxiliares (enums, unions) - 👤 Coordinador
 
 #### 1.2 Valores por Defecto
 
-- [ ] **1.2.1** Crear `src/features/focus/constants/defaults.ts`
-- [ ] **1.2.2** Definir `DEFAULT_FOCUS_SETTINGS`
-- [ ] **1.2.3** Definir `TIMER_INTERVALS` (work: 25min, short: 5min, long: 15min)
-- [ ] **1.2.4** Definir `MAX_PAUSES_DEFAULT = 3`
+- [x] **1.2.1** Crear `src/features/focus/constants/defaults.ts` - 👤 Coordinador
+- [x] **1.2.2** Definir `DEFAULT_FOCUS_SETTINGS` - 👤 Coordinador
+- [x] **1.2.3** Definir `TIMER_INTERVALS` (work: 25min, short: 5min, long: 15min) - 👤 Coordinador
+- [x] **1.2.4** Definir `MAX_PAUSES_DEFAULT = 3` - 👤 Coordinador
 
 ---
 
@@ -628,14 +628,14 @@ src/
 ### Resumen de Tareas
 
 - **Total de tareas:** 200+
-- **Completadas:** 9
+- **Completadas:** 18
 - **En progreso:** 0
-- **Pendientes:** 191+
+- **Pendientes:** 182+
 
 ### Progreso por Fase
 
-- [x] Fase 0: Preparación (9/9 tareas) ✅ **COMPLETADA**
-- [ ] Fase 1: Modelo de Datos (0/5 tareas)
+- [x] Fase 0: Preparación (9/9 tareas) ✅ **COMPLETADA** - 👤 Coordinador
+- [x] Fase 1: Modelo de Datos (9/9 tareas) ✅ **COMPLETADA** - 👤 Coordinador
 - [ ] Fase 2: Almacenamiento (0/8 tareas)
 - [ ] Fase 3: Timer Service (0/14 tareas)
 - [ ] Fase 4: Zustand Store (0/13 tareas)
@@ -652,8 +652,8 @@ src/
 ### Estimación de Tiempo
 
 - **Tiempo estimado total:** 18-24 días de desarrollo
-- **Tiempo transcurrido:** 0.5 días
-- **Tiempo restante:** 17.5-23.5 días
+- **Tiempo transcurrido:** 1 día
+- **Tiempo restante:** 17-23 días
 
 ---
 
@@ -661,8 +661,8 @@ src/
 
 1. ✅ Revisar y aprobar este roadmap
 2. ✅ Fase 0: Preparación y Setup (COMPLETADA)
-3. ⏭️ Comenzar Fase 1: Modelo de Datos y Tipos
-4. ⏭️ Definir interfaces TypeScript
+3. ✅ Fase 1: Modelo de Datos y Tipos (COMPLETADA)
+4. ⏭️ Comenzar Fase 2: Servicios de Almacenamiento
 
 ---
 
@@ -694,9 +694,10 @@ src/
 | ---------- | ------- | ------------------------------ |
 | 2025-12-26 | 1.0     | Creación inicial del roadmap   |
 | 2025-12-26 | 1.1     | Fase 0 completada (9/9 tareas) |
+| 2025-12-26 | 1.2     | Fase 1 completada (9/9 tareas) |
 
 ---
 
 **Última actualización:** 26 de Diciembre, 2025  
 **Responsable:** Equipo de Desarrollo  
-**Estado:** 🟢 En progreso - Fase 0 completada
+**Estado:** 🟢 En progreso - Fases 0 y 1 completadas
