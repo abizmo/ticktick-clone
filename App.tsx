@@ -5,7 +5,7 @@ import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import Icon from 'react-native-vector-icons/Ionicons';
 
 import ListsNavigator from './src/navigation/ListsNavigator';
-import FocusScreen from './src/screens/FocusScreen';
+import FocusScreen from './src/screens/FocusScreen.old';
 import CalendarScreen from './src/screens/CalendarScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
 
