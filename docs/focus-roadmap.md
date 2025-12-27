@@ -178,31 +178,31 @@ src/
 
 #### 3.1 Timer Core
 
-- [ ] **3.1.1** Crear `src/features/focus/services/timerService.ts`
-- [ ] **3.1.2** Implementar clase `TimerService` con EventEmitter
-- [ ] **3.1.3** Implementar método `start(durationSeconds: number)`
-- [ ] **3.1.4** Implementar método `pause()`
-- [ ] **3.1.5** Implementar método `resume()`
-- [ ] **3.1.6** Implementar método `stop()`
-- [ ] **3.1.7** Implementar método `reset()`
-- [ ] **3.1.8** Implementar tick cada segundo (usar `setInterval`)
-- [ ] **3.1.9** Emitir eventos: `tick`, `complete`, `pause`, `resume`
+- [x] **3.1.1** Crear `src/features/focus/services/timerService.ts` - 👤 Coordinador
+- [x] **3.1.2** Implementar clase `TimerService` con EventEmitter - 👤 Coordinador
+- [x] **3.1.3** Implementar método `start(durationSeconds: number)` - 👤 Coordinador
+- [x] **3.1.4** Implementar método `pause()` - 👤 Coordinador
+- [x] **3.1.5** Implementar método `resume()` - 👤 Coordinador
+- [x] **3.1.6** Implementar método `stop()` - 👤 Coordinador
+- [x] **3.1.7** Implementar método `reset()` - 👤 Coordinador
+- [x] **3.1.8** Implementar tick cada segundo (usar `setInterval`) - 👤 Coordinador
+- [x] **3.1.9** Emitir eventos: `tick`, `complete`, `pause`, `resume` - 👤 Coordinador
 
 #### 3.2 Pomodoro Logic
 
-- [ ] **3.2.1** Crear `src/features/focus/utils/pomodoroCalculator.ts`
-- [ ] **3.2.2** Implementar `getNextPhase(current, pomodorosCompleted, settings): Phase`
-- [ ] **3.2.3** Implementar `getPhaseDuration(phase, settings): number`
-- [ ] **3.2.4** Implementar `shouldTakeLongBreak(pomodorosCompleted, settings): boolean`
-- [ ] **3.2.5** Implementar `canPause(pausesUsed, maxPauses): boolean`
+- [x] **3.2.1** Crear `src/features/focus/utils/pomodoroCalculator.ts` - 👤 Coordinador
+- [x] **3.2.2** Implementar `getNextPhase(current, pomodorosCompleted, settings): Phase` - 👤 Coordinador
+- [x] **3.2.3** Implementar `getPhaseDuration(phase, settings): number` - 👤 Coordinador
+- [x] **3.2.4** Implementar `shouldTakeLongBreak(pomodorosCompleted, settings): boolean` - 👤 Coordinador
+- [x] **3.2.5** Implementar `canPause(pausesUsed, maxPauses): boolean` - 👤 Coordinador
 
 #### 3.3 Time Formatting
 
-- [ ] **3.3.1** Crear `src/features/focus/utils/timeFormatter.ts`
-- [ ] **3.3.2** Implementar `formatTime(seconds): string` (MM:SS)
-- [ ] **3.3.3** Implementar `formatDuration(seconds): string` (Xh Ym)
-- [ ] **3.3.4** Implementar `secondsToMinutes(seconds): number`
-- [ ] **3.3.5** Implementar `minutesToSeconds(minutes): number`
+- [x] **3.3.1** Crear `src/features/focus/utils/timeFormatter.ts` - 👤 Coordinador
+- [x] **3.3.2** Implementar `formatTime(seconds): string` (MM:SS) - 👤 Coordinador
+- [x] **3.3.3** Implementar `formatDuration(seconds): string` (Xh Ym) - 👤 Coordinador
+- [x] **3.3.4** Implementar `secondsToMinutes(seconds): number` - 👤 Coordinador
+- [x] **3.3.5** Implementar `minutesToSeconds(minutes): number` - 👤 Coordinador
 
 ---
 
