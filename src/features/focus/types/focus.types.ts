@@ -172,6 +172,51 @@ export interface WeeklyStats {
 }
 
 // ============================================================================
+// Error Types
+// ============================================================================
+
+/**
+ * Error severity levels
+ */
+export type ErrorSeverity = 'warning' | 'error' | 'critical';
+
+/**
+ * Error types that can occur in Focus feature
+ */
+export type ErrorType =
+  | 'storage_load_failed'
+  | 'storage_save_failed'
+  | 'storage_corrupted'
+  | 'timer_error'
+  | 'session_error'
+  | 'validation_error';
+
+/**
+ * Focus feature error
+ *
+ * @interface FocusError
+ */
+export interface FocusError {
+  /** Error type */
+  type: ErrorType;
+
+  /** Error severity */
+  severity: ErrorSeverity;
+
+  /** Human-readable error message */
+  message: string;
+
+  /** Technical error details (for logging) */
+  details?: string;
+
+  /** Timestamp when error occurred */
+  timestamp: Date;
+
+  /** Whether error can be dismissed by user */
+  dismissible: boolean;
+}
+
+// ============================================================================
 // Store Types
 // ============================================================================
 
@@ -200,6 +245,9 @@ export interface FocusStoreState {
   /** Statistics for today */
   todayStats: TodayStats;
 
+  /** Error state for UI display (null if no error) */
+  error: FocusError | null;
+
   // ========== Actions ==========
   /** Start a new Focus session */
   startFocus: (taskId?: string) => void;
@@ -227,6 +275,9 @@ export interface FocusStoreState {
 
   /** Cleanup timer service and listeners (prevents memory leaks) */
   cleanup: () => void;
+
+  /** Clear current error */
+  clearError: () => void;
 }
 
 /**

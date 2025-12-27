@@ -25,6 +25,9 @@ import type {
   FocusSession,
   TodayStats,
   Task,
+  FocusError,
+  ErrorType,
+  ErrorSeverity,
 } from '../types/focus.types';
 
 // Services
@@ -89,6 +92,7 @@ export const useFocusStore = create<FocusStoreState>()(
       settings: {...DEFAULT_FOCUS_SETTINGS},
       sessions: [],
       todayStats: {...INITIAL_TODAY_STATS},
+      error: null,
 
       // ======================================================================
       // Actions
@@ -301,8 +305,22 @@ export const useFocusStore = create<FocusStoreState>()(
           );
         } catch (error) {
           console.error('[FocusStore] Error stopping Focus:', error);
+
           // Restore session on error
           set({currentSession: sessionToStop});
+
+          // Set error state for UI
+          const errorMessage =
+            error instanceof Error ? error.message : String(error);
+          set({
+            error: createError(
+              'storage_save_failed',
+              'Failed to save your Focus session. The session is still active.',
+              'error',
+              errorMessage,
+              true,
+            ),
+          });
         }
       },
 
@@ -330,6 +348,9 @@ export const useFocusStore = create<FocusStoreState>()(
         const state = get();
 
         try {
+          // Clear any previous errors
+          set({error: null});
+
           // Merge with existing settings
           const updatedSettings = {
             ...state.settings,
@@ -345,7 +366,22 @@ export const useFocusStore = create<FocusStoreState>()(
           console.log('[FocusStore] Updated settings:', newSettings);
         } catch (error) {
           console.error('[FocusStore] Error updating settings:', error);
-          throw error; // Re-throw so caller knows it failed
+
+          // Set error state for UI
+          const errorMessage =
+            error instanceof Error ? error.message : String(error);
+          set({
+            error: createError(
+              'storage_save_failed',
+              'Failed to save your settings. Please try again.',
+              'error',
+              errorMessage,
+              true,
+            ),
+          });
+
+          // Re-throw so caller knows it failed
+          throw error;
         }
       },
 
@@ -366,6 +402,9 @@ export const useFocusStore = create<FocusStoreState>()(
         }
 
         try {
+          // Clear any previous errors
+          set({error: null});
+
           // Load sessions
           const sessions = await storageService.loadFocusSessions();
 
@@ -388,6 +427,42 @@ export const useFocusStore = create<FocusStoreState>()(
           );
         } catch (error) {
           console.error('[FocusStore] Error loading sessions:', error);
+
+          // Determine error type and severity
+          const errorMessage =
+            error instanceof Error ? error.message : String(error);
+
+          let errorType: ErrorType = 'storage_load_failed';
+          let severity: ErrorSeverity = 'error';
+          let userMessage =
+            'Failed to load your Focus history. Your data may be corrupted.';
+
+          // Check if it's a corrupted data error
+          if (errorMessage.includes('JSON') || errorMessage.includes('parse')) {
+            errorType = 'storage_corrupted';
+            severity = 'critical';
+            userMessage =
+              'Your Focus data is corrupted and cannot be loaded. Previous sessions may be lost.';
+          }
+
+          // Set error state for UI to display
+          set({
+            error: createError(
+              errorType,
+              userMessage,
+              severity,
+              errorMessage,
+              true, // User can dismiss
+            ),
+            // Fall back to defaults
+            sessions: [],
+            settings: DEFAULT_FOCUS_SETTINGS,
+          });
+
+          // Re-throw for critical errors so caller knows
+          if (severity === 'critical') {
+            throw error;
+          }
         }
       },
 
@@ -452,6 +527,15 @@ export const useFocusStore = create<FocusStoreState>()(
         } catch (error) {
           console.error('[FocusStore] Error during cleanup:', error);
         }
+      },
+
+      /**
+       * Clear current error
+       *
+       * Dismisses the current error from the UI.
+       */
+      clearError: () => {
+        set({error: null});
       },
     }),
     {
@@ -566,6 +650,33 @@ const setupTimerListeners = (
 // ============================================================================
 // Helper Functions
 // ============================================================================
+
+/**
+ * Create a FocusError object
+ *
+ * @param type - Error type
+ * @param message - Human-readable message
+ * @param severity - Error severity
+ * @param details - Technical details
+ * @param dismissible - Whether error can be dismissed
+ * @returns FocusError object
+ */
+const createError = (
+  type: ErrorType,
+  message: string,
+  severity: ErrorSeverity = 'error',
+  details?: string,
+  dismissible: boolean = true,
+): FocusError => {
+  return {
+    type,
+    severity,
+    message,
+    details,
+    timestamp: new Date(),
+    dismissible,
+  };
+};
 
 /**
  * Get today's sessions synchronously from sessions array
