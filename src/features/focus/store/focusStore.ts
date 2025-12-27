@@ -31,7 +31,7 @@ import type {
 } from '../types/focus.types';
 
 // Services
-import {TimerService, createTimerService} from '../services/timerService';
+import {getTimerService, type TimerService} from '../services/timerService';
 import * as sessionService from '../services/sessionService';
 import * as storageService from '../services/storageService';
 
@@ -44,26 +44,6 @@ import {
   INITIAL_TIMER_STATE,
   INITIAL_TODAY_STATS,
 } from '../constants/defaults';
-
-// ============================================================================
-// Timer Service Instance
-// ============================================================================
-
-/**
- * Shared TimerService instance for the Focus store
- * Created once and reused across the store lifecycle
- */
-let timerServiceInstance: TimerService | null = null;
-
-/**
- * Get or create the TimerService instance
- */
-const getTimerService = (): TimerService => {
-  if (!timerServiceInstance) {
-    timerServiceInstance = createTimerService();
-  }
-  return timerServiceInstance;
-};
 
 // ============================================================================
 // Store Implementation
