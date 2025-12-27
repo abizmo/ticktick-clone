@@ -114,16 +114,22 @@ export const useFocusStore = create<FocusStoreState>()(
           // Get current settings
           const {settings, timerState} = state;
 
-          // Create new session
-          const newSession = sessionService.createSession(
-            taskId,
-            timerState.mode,
-          );
-
           // Calculate duration for current phase
           const duration = pomodoroCalculator.getPhaseDuration(
             timerState.currentPhase,
             settings,
+          );
+
+          // Validate duration
+          if (duration <= 0) {
+            console.error('[FocusStore] Invalid duration:', duration);
+            return;
+          }
+
+          // Create new session
+          const newSession = sessionService.createSession(
+            taskId,
+            timerState.mode,
           );
 
           // Start timer service
@@ -242,6 +248,8 @@ export const useFocusStore = create<FocusStoreState>()(
        *
        * Stops the timer, completes or interrupts the session,
        * saves to storage, and resets state.
+       *
+       * Fixed: Race condition prevention by immediately clearing currentSession
        */
       stopFocus: async () => {
         const state = get();
@@ -252,8 +260,12 @@ export const useFocusStore = create<FocusStoreState>()(
           return;
         }
 
+        // Immediately clear currentSession to prevent duplicate calls (race condition fix)
+        const sessionToStop = state.currentSession;
+        set({currentSession: null});
+
         try {
-          const {currentSession, timerState} = state;
+          const {timerState} = state;
 
           // Stop timer service
           const timer = getTimerService();
@@ -264,8 +276,8 @@ export const useFocusStore = create<FocusStoreState>()(
 
           // Update session
           const finalSession = isCompleted
-            ? sessionService.completeSession(currentSession)
-            : sessionService.interruptSession(currentSession);
+            ? sessionService.completeSession(sessionToStop)
+            : sessionService.interruptSession(sessionToStop);
 
           // Save session to storage
           await storageService.saveFocusSession(finalSession);
@@ -275,7 +287,6 @@ export const useFocusStore = create<FocusStoreState>()(
 
           // Reset state
           set({
-            currentSession: null,
             timerState: {...INITIAL_TIMER_STATE},
             sessions: updatedSessions,
           });
@@ -290,6 +301,8 @@ export const useFocusStore = create<FocusStoreState>()(
           );
         } catch (error) {
           console.error('[FocusStore] Error stopping Focus:', error);
+          // Restore session on error
+          set({currentSession: sessionToStop});
         }
       },
 
@@ -309,6 +322,7 @@ export const useFocusStore = create<FocusStoreState>()(
        * Update Focus settings
        *
        * Updates settings and persists to storage.
+       * Fixed: Save to storage FIRST, then update state
        *
        * @param newSettings - Partial settings to update
        */
@@ -322,15 +336,16 @@ export const useFocusStore = create<FocusStoreState>()(
             ...newSettings,
           };
 
-          // Save to storage
+          // Save to storage FIRST (error recovery fix)
           await storageService.saveFocusSettings(updatedSettings);
 
-          // Update state
+          // Only update state if save succeeded
           set({settings: updatedSettings});
 
           console.log('[FocusStore] Updated settings:', newSettings);
         } catch (error) {
           console.error('[FocusStore] Error updating settings:', error);
+          throw error; // Re-throw so caller knows it failed
         }
       },
 
@@ -340,6 +355,16 @@ export const useFocusStore = create<FocusStoreState>()(
        * Loads session history and settings from AsyncStorage.
        */
       loadSessions: async () => {
+        const state = get();
+
+        // Don't reload if session is active (safety check)
+        if (state.currentSession) {
+          console.warn(
+            '[FocusStore] Cannot reload sessions while session is active',
+          );
+          return;
+        }
+
         try {
           // Load sessions
           const sessions = await storageService.loadFocusSessions();
@@ -409,16 +434,35 @@ export const useFocusStore = create<FocusStoreState>()(
           console.error('[FocusStore] Error calculating stats:', error);
         }
       },
+
+      /**
+       * Cleanup function
+       *
+       * Stops timer and removes all listeners.
+       * Call this when unmounting the Focus screen to prevent memory leaks.
+       *
+       * Fixed: Memory leak prevention
+       */
+      cleanup: () => {
+        try {
+          const timer = getTimerService();
+          timer.removeAllListeners();
+          timer.stop();
+          console.log('[FocusStore] Cleaned up timer service');
+        } catch (error) {
+          console.error('[FocusStore] Error during cleanup:', error);
+        }
+      },
     }),
     {
       name: 'focus-storage',
       storage: createJSONStorage(() => AsyncStorage),
-      // Only persist settings, sessions, and stats
-      // Do NOT persist timerState or currentSession (volatile)
+      // Only persist settings and sessions
+      // Do NOT persist: timerState, currentSession, selectedTask, todayStats (all volatile)
+      // todayStats is calculated on load to ensure it's always current
       partialize: state => ({
         settings: state.settings,
         sessions: state.sessions,
-        todayStats: state.todayStats,
       }),
     },
   ),
@@ -466,6 +510,8 @@ const setupTimerListeners = (
   /**
    * Handle complete event
    * Transitions to next phase or completes session
+   *
+   * Fixed: Reset pomodoro count after long break
    */
   timer.on('complete', async () => {
     const state = get();
@@ -476,9 +522,15 @@ const setupTimerListeners = (
     // If in work phase, increment pomodoros
     const isWorkPhase = pomodoroCalculator.isWorkPhase(timerState.currentPhase);
 
-    const newPomodorosCompleted = isWorkPhase
-      ? timerState.pomodorosCompleted + 1
-      : timerState.pomodorosCompleted;
+    // Calculate new pomodoro count
+    let newPomodorosCompleted = timerState.pomodorosCompleted;
+
+    if (isWorkPhase) {
+      newPomodorosCompleted += 1;
+    } else if (timerState.currentPhase === 'longBreak') {
+      // Reset count after long break (fix from reviewer)
+      newPomodorosCompleted = 0;
+    }
 
     // Calculate next phase
     const nextPhase = pomodoroCalculator.getNextPhase(
@@ -508,34 +560,6 @@ const setupTimerListeners = (
     });
 
     console.log(`[FocusStore] Transitioned to ${nextPhase} (${nextDuration}s)`);
-  });
-
-  /**
-   * Handle pause event
-   * Updates status to paused
-   */
-  timer.on('pause', () => {
-    const state = get();
-    set({
-      timerState: {
-        ...state.timerState,
-        status: 'paused',
-      },
-    });
-  });
-
-  /**
-   * Handle resume event
-   * Updates status to running
-   */
-  timer.on('resume', () => {
-    const state = get();
-    set({
-      timerState: {
-        ...state.timerState,
-        status: 'running',
-      },
-    });
   });
 };
 

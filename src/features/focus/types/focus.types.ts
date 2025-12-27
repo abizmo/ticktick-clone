@@ -224,6 +224,9 @@ export interface FocusStoreState {
 
   /** Calculate today's statistics */
   calculateTodayStats: () => void;
+
+  /** Cleanup timer service and listeners (prevents memory leaks) */
+  cleanup: () => void;
 }
 
 /**
