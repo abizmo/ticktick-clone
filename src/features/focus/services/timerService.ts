@@ -258,12 +258,20 @@ export class TimerService extends SimpleEventEmitter {
 
   /**
    * Get progress as percentage (0-100)
+   *
+   * Uses Math.floor to ensure progress only increases when a full percentage
+   * point is completed. This provides a smoother, more predictable progress
+   * bar experience without unexpected jumps due to rounding.
+   *
+   * Example: If 50.7% complete, returns 50 (not 51)
+   *
+   * @returns Progress percentage (0-100, integer)
    */
   getProgress(): number {
     if (this.initialDuration === 0) {
       return 0;
     }
-    return Math.round((this.getElapsedTime() / this.initialDuration) * 100);
+    return Math.floor((this.getElapsedTime() / this.initialDuration) * 100);
   }
 
   // ==========================================================================

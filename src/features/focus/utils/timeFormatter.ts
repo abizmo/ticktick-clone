@@ -243,9 +243,21 @@ export const clampTime = (
 /**
  * Get time remaining as percentage
  *
+ * Returns a precise decimal percentage for calculations.
+ * For UI display (progress bars), consider using Math.floor()
+ * on the result to avoid unpredictable rounding jumps.
+ *
  * @param timeRemaining - Time remaining in seconds
  * @param totalDuration - Total duration in seconds
- * @returns Percentage (0-100)
+ * @returns Percentage (0-100, may include decimals)
+ *
+ * @example
+ * // For calculations (precise)
+ * const percent = getTimeRemainingPercentage(75, 100); // 75.0
+ *
+ * @example
+ * // For UI progress bar (smooth)
+ * const displayPercent = Math.floor(getTimeRemainingPercentage(75.7, 100)); // 75
  */
 export const getTimeRemainingPercentage = (
   timeRemaining: number,
@@ -262,9 +274,21 @@ export const getTimeRemainingPercentage = (
 /**
  * Get elapsed time as percentage
  *
+ * Returns a precise decimal percentage for calculations.
+ * For UI display (progress bars), consider using Math.floor()
+ * on the result to avoid unpredictable rounding jumps.
+ *
  * @param timeRemaining - Time remaining in seconds
  * @param totalDuration - Total duration in seconds
- * @returns Percentage (0-100)
+ * @returns Percentage (0-100, may include decimals)
+ *
+ * @example
+ * // For calculations (precise)
+ * const percent = getElapsedPercentage(25, 100); // 75.0
+ *
+ * @example
+ * // For UI progress bar (smooth)
+ * const displayPercent = Math.floor(getElapsedPercentage(25, 100)); // 75
  */
 export const getElapsedPercentage = (
   timeRemaining: number,
