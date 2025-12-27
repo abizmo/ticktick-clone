@@ -210,69 +210,29 @@ src/
 
 #### 4.1 Focus Store Setup
 
-- [ ] **4.1.1** Crear `src/features/focus/store/focusStore.ts`
-- [ ] **4.1.2** Definir estado inicial del store
-
-  ```typescript
-  interface FocusStoreState {
-    // Timer state
-    timerState: TimerState;
-    currentSession: FocusSession | null;
-    selectedTask: Task | null;
-
-    // Settings
-    settings: FocusSettings;
-
-    // History
-    sessions: FocusSession[];
-    todayStats: {totalMinutes: number; pomodorosCompleted: number};
-
-    // Actions
-    startFocus: (taskId?: string) => void;
-    pauseFocus: () => void;
-    resumeFocus: () => void;
-    stopFocus: () => void;
-    selectTask: (task: Task | null) => void;
-    updateSettings: (settings: Partial<FocusSettings>) => void;
-    loadSessions: () => Promise<void>;
-  }
-  ```
-
-- [ ] **4.1.3** Implementar store con Zustand
-- [ ] **4.1.4** Añadir middleware de persistencia (AsyncStorage)
+- [x] **4.1.1** Crear `src/features/focus/store/focusStore.ts` - 👤 Coordinador
+- [x] **4.1.2** Definir estado inicial del store - 👤 Coordinador
+- [x] **4.1.3** Implementar store con Zustand - 👤 Coordinador
+- [x] **4.1.4** Añadir middleware de persistencia (AsyncStorage) - 👤 Coordinador
 
 #### 4.2 Store Actions
 
-- [ ] **4.2.1** Implementar `startFocus(taskId?)`
-  - Validar que no haya sesión activa
-  - Crear nueva sesión
-  - Iniciar TimerService
-  - Actualizar estado
-- [ ] **4.2.2** Implementar `pauseFocus()`
-  - Validar límite de pausas
-  - Pausar TimerService
-  - Incrementar pausesUsed
-  - Actualizar sesión
-- [ ] **4.2.3** Implementar `resumeFocus()`
-  - Reanudar TimerService
-  - Actualizar estado
-- [ ] **4.2.4** Implementar `stopFocus()`
-  - Detener TimerService
-  - Completar o interrumpir sesión
-  - Guardar en AsyncStorage
-  - Resetear estado
-- [ ] **4.2.5** Implementar `selectTask(task)`
-- [ ] **4.2.6** Implementar `updateSettings(settings)`
-- [ ] **4.2.7** Implementar `loadSessions()`
-- [ ] **4.2.8** Implementar `calculateTodayStats()`
+- [x] **4.2.1** Implementar `startFocus(taskId?)` - 👤 Coordinador
+- [x] **4.2.2** Implementar `pauseFocus()` - 👤 Coordinador
+- [x] **4.2.3** Implementar `resumeFocus()` - 👤 Coordinador
+- [x] **4.2.4** Implementar `stopFocus()` - 👤 Coordinador
+- [x] **4.2.5** Implementar `selectTask(task)` - 👤 Coordinador
+- [x] **4.2.6** Implementar `updateSettings(settings)` - 👤 Coordinador
+- [x] **4.2.7** Implementar `loadSessions()` - 👤 Coordinador
+- [x] **4.2.8** Implementar `calculateTodayStats()` - 👤 Coordinador
+- [x] **4.2.9** Implementar `cleanup()` (memory leak prevention) - 👤 Coordinador + @rn-reviewer
 
 #### 4.3 Store Listeners
 
-- [ ] **4.3.1** Suscribirse a eventos de TimerService
-- [ ] **4.3.2** Manejar evento `tick` → actualizar timeRemaining
-- [ ] **4.3.3** Manejar evento `complete` → transición de fase o completar
-- [ ] **4.3.4** Manejar evento `pause` → actualizar estado
-- [ ] **4.3.5** Manejar evento `resume` → actualizar estado
+- [x] **4.3.1** Suscribirse a eventos de TimerService - 👤 Coordinador
+- [x] **4.3.2** Manejar evento `tick` → actualizar timeRemaining - 👤 Coordinador
+- [x] **4.3.3** Manejar evento `complete` → transición de fase - 👤 Coordinador
+- [x] **4.3.4** Aplicar fixes de @rn-reviewer (race conditions, memory leaks) - 👤 Coordinador + @rn-reviewer
 
 ---
 
