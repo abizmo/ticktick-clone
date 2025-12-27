@@ -5,6 +5,11 @@
  * It provides a timer that can be started, paused, resumed, stopped, and reset.
  * Uses EventEmitter pattern to notify listeners of timer events.
  *
+ * Drift Correction:
+ * Implements drift correction by tracking actual elapsed time using Date.now()
+ * instead of counting setInterval ticks. This prevents timer drift that can
+ * accumulate over long sessions (e.g., 25-minute Pomodoro = 1500 ticks).
+ *
  * @module timerService
  */
 
@@ -88,13 +93,28 @@ class SimpleEventEmitter {
 
 /**
  * TimerService class
- * Manages a countdown timer with event emission
+ * Manages a countdown timer with event emission and drift correction
+ *
+ * Drift Correction Implementation:
+ * - Tracks start time using Date.now() (wall-clock time)
+ * - Calculates actual elapsed time on each tick
+ * - Adjusts timeRemaining based on real elapsed time, not tick count
+ * - Handles pauses by tracking total paused duration
+ *
+ * Example: A 25-minute Pomodoro (1500 seconds) could drift by 5-10 seconds
+ * with naive setInterval counting. This implementation stays accurate by
+ * comparing against actual wall-clock time.
  */
 export class TimerService extends SimpleEventEmitter {
   private intervalId: ReturnType<typeof setInterval> | null = null;
   private timeRemaining: number = 0; // seconds
   private initialDuration: number = 0; // seconds
   private status: TimerStatus = 'idle';
+
+  // Drift correction fields
+  private startTimestamp: number = 0; // milliseconds (Date.now() when started)
+  private pausedAt: number = 0; // milliseconds (Date.now() when paused)
+  private totalPausedDuration: number = 0; // milliseconds accumulated during pauses
 
   constructor() {
     super();
@@ -106,6 +126,8 @@ export class TimerService extends SimpleEventEmitter {
 
   /**
    * Start the timer with a specific duration
+   *
+   * Initializes drift correction by recording the start timestamp.
    *
    * @param durationSeconds - Duration in seconds
    * @throws Error if timer is already running
@@ -125,6 +147,11 @@ export class TimerService extends SimpleEventEmitter {
     this.timeRemaining = durationSeconds;
     this.status = 'running';
 
+    // Initialize drift correction
+    this.startTimestamp = Date.now();
+    this.totalPausedDuration = 0;
+    this.pausedAt = 0;
+
     this.startInterval();
 
     console.log(`[TimerService] Started timer with ${durationSeconds}s`);
@@ -132,7 +159,7 @@ export class TimerService extends SimpleEventEmitter {
 
   /**
    * Pause the timer
-   * Preserves current time remaining
+   * Preserves current time remaining and tracks pause duration for drift correction
    *
    * @throws Error if timer is not running
    */
@@ -143,6 +170,10 @@ export class TimerService extends SimpleEventEmitter {
 
     this.stopInterval();
     this.status = 'paused';
+
+    // Track when paused for drift correction
+    this.pausedAt = Date.now();
+
     this.emit('pause', this.timeRemaining);
 
     console.log(`[TimerService] Paused timer at ${this.timeRemaining}s`);
@@ -150,6 +181,7 @@ export class TimerService extends SimpleEventEmitter {
 
   /**
    * Resume the timer from paused state
+   * Adjusts drift correction to account for pause duration
    *
    * @throws Error if timer is not paused
    */
@@ -159,6 +191,14 @@ export class TimerService extends SimpleEventEmitter {
     }
 
     this.status = 'running';
+
+    // Calculate pause duration and add to total
+    if (this.pausedAt > 0) {
+      const pauseDuration = Date.now() - this.pausedAt;
+      this.totalPausedDuration += pauseDuration;
+      this.pausedAt = 0;
+    }
+
     this.startInterval();
     this.emit('resume', this.timeRemaining);
 
@@ -178,6 +218,12 @@ export class TimerService extends SimpleEventEmitter {
     const remainingTime = this.timeRemaining;
     this.timeRemaining = 0;
     this.status = 'idle';
+
+    // Reset drift correction fields
+    this.startTimestamp = 0;
+    this.pausedAt = 0;
+    this.totalPausedDuration = 0;
+
     this.emit('stop', remainingTime);
 
     console.log(`[TimerService] Stopped timer`);
@@ -191,6 +237,12 @@ export class TimerService extends SimpleEventEmitter {
     this.stopInterval();
     this.timeRemaining = this.initialDuration;
     this.status = 'idle';
+
+    // Reset drift correction fields
+    this.startTimestamp = 0;
+    this.pausedAt = 0;
+    this.totalPausedDuration = 0;
+
     this.emit('reset', this.timeRemaining);
 
     console.log(`[TimerService] Reset timer to ${this.initialDuration}s`);
@@ -280,6 +332,9 @@ export class TimerService extends SimpleEventEmitter {
 
   /**
    * Start the interval for ticking
+   *
+   * Uses setInterval with drift correction. On each tick, calculates
+   * actual elapsed time and adjusts timeRemaining accordingly.
    */
   private startInterval(): void {
     // Clear any existing interval
@@ -303,15 +358,25 @@ export class TimerService extends SimpleEventEmitter {
 
   /**
    * Handle each tick of the timer
-   * Decrements time and emits events
+   *
+   * Implements drift correction by calculating actual elapsed time
+   * from wall-clock time instead of counting ticks.
    */
   private tick(): void {
     if (this.status !== 'running') {
       return;
     }
 
-    // Decrement time
-    this.timeRemaining -= 1;
+    // Calculate actual elapsed time with drift correction
+    const now = Date.now();
+    const totalElapsedMs = now - this.startTimestamp - this.totalPausedDuration;
+    const totalElapsedSeconds = Math.floor(totalElapsedMs / 1000);
+
+    // Calculate time remaining based on actual elapsed time
+    const newTimeRemaining = this.initialDuration - totalElapsedSeconds;
+
+    // Update time remaining (drift-corrected)
+    this.timeRemaining = Math.max(0, newTimeRemaining);
 
     // Emit tick event
     this.emit('tick', this.timeRemaining);
