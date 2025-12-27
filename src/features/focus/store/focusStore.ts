@@ -258,13 +258,24 @@ export const useFocusStore = create<FocusStoreState>()(
           // Determine if session was completed or interrupted
           const isCompleted = timerState.timeRemaining <= 0;
 
-          // Update session
-          const finalSession = isCompleted
-            ? sessionService.completeSession(sessionToStop)
-            : sessionService.interruptSession(sessionToStop);
+          // Update session with final pomodoro count from timerState
+          const sessionWithPomodoros = sessionService.updateSession(
+            sessionToStop,
+            {
+              pomodorosCompleted: timerState.pomodorosCompleted,
+            },
+          );
 
-          // Save session to storage
+          // Complete or interrupt the session
+          const finalSession = isCompleted
+            ? sessionService.completeSession(sessionWithPomodoros)
+            : sessionService.interruptSession(sessionWithPomodoros);
+
+          // Save session to storage (history)
           await storageService.saveFocusSession(finalSession);
+
+          // Clear current session from AsyncStorage (crash recovery cleanup)
+          await storageService.saveCurrentSession(null);
 
           // Add to sessions list
           const updatedSessions = [finalSession, ...state.sessions];
@@ -281,7 +292,7 @@ export const useFocusStore = create<FocusStoreState>()(
           console.log(
             `[FocusStore] Stopped Focus session (${
               isCompleted ? 'completed' : 'interrupted'
-            })`,
+            }) - ${timerState.pomodorosCompleted} pomodoros completed`,
           );
         } catch (error) {
           console.error('[FocusStore] Error stopping Focus:', error);
@@ -369,6 +380,8 @@ export const useFocusStore = create<FocusStoreState>()(
        * Load sessions from storage
        *
        * Loads session history and settings from AsyncStorage.
+       * Also checks for crash recovery - if a session was in progress when app closed,
+       * it will be restored to currentSession for the UI to handle.
        */
       loadSessions: async () => {
         const state = get();
@@ -391,14 +404,25 @@ export const useFocusStore = create<FocusStoreState>()(
           // Load settings
           const settings = await storageService.loadFocusSettings();
 
+          // CRASH RECOVERY: Load current session (if app crashed during a session)
+          const currentSession = await storageService.loadCurrentSession();
+
           // Update state
           set({
             sessions: sessions || [],
             settings: settings || DEFAULT_FOCUS_SETTINGS,
+            currentSession: currentSession || null,
           });
 
           // Calculate today's stats
           get().calculateTodayStats();
+
+          // Log recovery status
+          if (currentSession) {
+            console.log(
+              `[FocusStore] CRASH RECOVERY: Restored session in progress (${currentSession.pomodorosCompleted} pomodoros completed)`,
+            );
+          }
 
           console.log(
             `[FocusStore] Loaded ${
@@ -464,7 +488,9 @@ export const useFocusStore = create<FocusStoreState>()(
             sessionService.calculateTotalDuration(todaySessions) / 60,
           );
 
-          const pomodorosCompleted = sessionService.countPomodoroSessions(
+          // Count actual pomodoros completed (not sessions)
+          // Only count from completed sessions to ensure accuracy
+          const pomodorosCompleted = sessionService.calculateTotalPomodoros(
             todaySessions.filter((s: FocusSession) => s.status === 'completed'),
           );
 
@@ -575,11 +601,37 @@ const setupTimerListeners = (
    * Handle complete event
    * Transitions to next phase or completes session
    *
+   * DESIGN DECISION: Session Lifecycle
+   * ===================================
+   * A FocusSession spans the entire Pomodoro cycle (multiple work intervals + breaks)
+   * until the user manually calls stopFocus().
+   *
+   * This means:
+   * - One session can include 4 pomodoros + 3 short breaks + 1 long break (~2 hours)
+   * - Session is only saved to history when user calls stopFocus()
+   * - Intermediate progress is saved to AsyncStorage after each work phase for crash recovery
+   * - pomodorosCompleted is tracked in both timerState (UI) and currentSession (persistence)
+   *
+   * Rationale:
+   * - Aligns with "work session" concept (extended focused work period)
+   * - Matches database schema (no 'phase' field in focus_sessions)
+   * - Supports "pauses per session" limit across multiple intervals
+   * - Allows recovery if app crashes during long session
+   *
+   * Example Flow:
+   * 1. User starts → Creates FocusSession
+   * 2. Work 25min → completes → pomodorosCompleted++, saves to AsyncStorage
+   * 3. Short Break 5min → completes → continues
+   * 4. Work 25min → completes → pomodorosCompleted++, saves to AsyncStorage
+   * 5. ... (continues through cycle)
+   * 6. User stops → Saves final session to history with total pomodorosCompleted
+   *
    * Fixed: Reset pomodoro count after long break
+   * Fixed: Intermediate persistence for crash recovery
    */
   timer.on('complete', async () => {
     const state = get();
-    const {timerState, settings} = state;
+    const {timerState, settings, currentSession} = state;
 
     console.log('[FocusStore] Timer completed');
 
@@ -594,6 +646,33 @@ const setupTimerListeners = (
     } else if (timerState.currentPhase === 'longBreak') {
       // Reset count after long break (fix from reviewer)
       newPomodorosCompleted = 0;
+    }
+
+    // INTERMEDIATE PERSISTENCE: Save progress after work phase completion
+    // This enables crash recovery - if app crashes, we can restore the session
+    if (isWorkPhase && currentSession) {
+      try {
+        const updatedSession = sessionService.updateSession(currentSession, {
+          pomodorosCompleted: newPomodorosCompleted,
+          durationSeconds: sessionService.calculateDuration(currentSession),
+        });
+
+        // Save to AsyncStorage for recovery
+        await storageService.saveCurrentSession(updatedSession);
+
+        // Update state with new session data
+        set({currentSession: updatedSession});
+
+        console.log(
+          `[FocusStore] Saved intermediate progress: ${newPomodorosCompleted} pomodoros`,
+        );
+      } catch (error) {
+        console.error(
+          '[FocusStore] Failed to save intermediate progress:',
+          error,
+        );
+        // Don't block the flow - continue with phase transition
+      }
     }
 
     // Calculate next phase

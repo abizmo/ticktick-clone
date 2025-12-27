@@ -39,6 +39,7 @@ export const createSession = (
     endTime: undefined,
     durationSeconds: 0,
     pausesCount: 0,
+    pomodorosCompleted: 0,
     status: 'active',
     createdAt: now,
     updatedAt: now,
@@ -304,6 +305,26 @@ export const countInterruptedSessions = (sessions: FocusSession[]): number => {
  */
 export const countPomodoroSessions = (sessions: FocusSession[]): number => {
   return sessions.filter(session => session.mode === 'pomodoro').length;
+};
+
+/**
+ * Calculate total number of pomodoros completed across all sessions
+ *
+ * This function sums the pomodorosCompleted field from all sessions.
+ * It correctly counts individual pomodoro work intervals, not sessions.
+ *
+ * Example:
+ * - Session 1: 4 pomodoros completed
+ * - Session 2: 2 pomodoros completed
+ * - Total: 6 pomodoros
+ *
+ * @param sessions - Array of sessions
+ * @returns Total number of pomodoros completed
+ */
+export const calculateTotalPomodoros = (sessions: FocusSession[]): number => {
+  return sessions.reduce((total, session) => {
+    return total + (session.pomodorosCompleted || 0);
+  }, 0);
 };
 
 /**

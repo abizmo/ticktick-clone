@@ -1,6 +1,7 @@
 # Requisitos Funcionales - Pantalla Focus
 
 ## Documento de Especificación Funcional
+
 **Versión:** 1.0  
 **Fecha:** 26 de Diciembre, 2025  
 **Propósito:** Definir los requisitos funcionales para implementar una pantalla de Focus basada en la funcionalidad de TickTick
@@ -34,6 +35,7 @@ Este documento cubre las funcionalidades core de la pantalla Focus, excluyendo i
 ### 1. Configuración y Activación
 
 #### RF-001: Habilitar/Deshabilitar Focus
+
 - **Descripción:** El sistema debe permitir al usuario activar o desactivar la funcionalidad Focus desde la configuración de la aplicación.
 - **Criterios de aceptación:**
   - Existe una opción en Configuración > Funcionalidades > Focus
@@ -46,6 +48,7 @@ Este documento cubre las funcionalidades core de la pantalla Focus, excluyendo i
 ### 2. Modos de Temporizador
 
 #### RF-002: Modo Pomodoro (Cuenta regresiva)
+
 - **Descripción:** Implementar la técnica Pomodoro con intervalos de trabajo y descanso configurables.
 - **Funcionalidades:**
   - Configurar duración del intervalo de trabajo (por defecto 25 minutos)
@@ -65,6 +68,7 @@ Este documento cubre las funcionalidades core de la pantalla Focus, excluyendo i
 - **Prioridad:** Alta
 
 #### RF-003: Modo Stopwatch (Cronómetro ascendente)
+
 - **Descripción:** Cronómetro que cuenta hacia adelante sin intervalos predefinidos.
 - **Funcionalidades:**
   - Iniciar desde 00:00:00
@@ -80,6 +84,7 @@ Este documento cubre las funcionalidades core de la pantalla Focus, excluyendo i
 - **Prioridad:** Alta
 
 #### RF-004: Alternancia entre modos
+
 - **Descripción:** Permitir al usuario cambiar entre Modo Pomodoro y Stopwatch.
 - **Funcionalidades:**
   - Botón/Toggle para cambiar entre modos
@@ -98,6 +103,7 @@ Este documento cubre las funcionalidades core de la pantalla Focus, excluyendo i
 ### 3. Selección y Gestión de Tareas
 
 #### RF-005: Seleccionar tarea para Focus
+
 - **Descripción:** Permitir al usuario seleccionar una tarea en la que concentrarse.
 - **Funcionalidades:**
   - Selector de tareas en el centro de la pantalla Focus
@@ -113,6 +119,7 @@ Este documento cubre las funcionalidades core de la pantalla Focus, excluyendo i
 - **Prioridad:** Alta
 
 #### RF-006: Iniciar Focus desde una tarea
+
 - **Descripción:** Permitir iniciar una sesión de Focus directamente desde el detalle de una tarea.
 - **Funcionalidades:**
   - Botón "Iniciar Focus" en el menú contextual de la tarea
@@ -125,6 +132,7 @@ Este documento cubre las funcionalidades core de la pantalla Focus, excluyendo i
 - **Prioridad:** Media
 
 #### RF-007: Lista de tareas favoritas para Focus
+
 - **Descripción:** Lista de acceso rápido a tareas frecuentes para iniciar Focus.
 - **Funcionalidades:**
   - Añadir/Eliminar tareas de la lista de favoritos
@@ -143,6 +151,7 @@ Este documento cubre las funcionalidades core de la pantalla Focus, excluyendo i
 ### 4. Interfaz de Usuario
 
 #### RF-008: Modo Pantalla Completa
+
 - **Descripción:** Modo inmersivo que oculta elementos innecesarios durante el Focus.
 - **Funcionalidades:**
   - Activación manual: tocar el área central de la pantalla
@@ -158,6 +167,7 @@ Este documento cubre las funcionalidades core de la pantalla Focus, excluyendo i
 - **Prioridad:** Media
 
 #### RF-009: Estilos visuales del temporizador
+
 - **Descripción:** Diferentes estilos de visualización del temporizador.
 - **Opciones:**
   - Estilo Moderno: números grandes, minimalista
@@ -171,6 +181,7 @@ Este documento cubre las funcionalidades core de la pantalla Focus, excluyendo i
 - **Prioridad:** Baja
 
 #### RF-010: Ventana flotante (Desktop)
+
 - **Descripción:** En versiones de escritorio, permitir mostrar el temporizador como ventana flotante.
 - **Funcionalidades:**
   - Botón "Abrir en ventana flotante"
@@ -189,6 +200,7 @@ Este documento cubre las funcionalidades core de la pantalla Focus, excluyendo i
 ### 5. Sonidos Ambiente (White Noise)
 
 #### RF-011: Reproducción de sonidos ambientales
+
 - **Descripción:** Ofrecer sonidos de fondo para mejorar la concentración.
 - **Funcionalidades:**
   - Biblioteca de sonidos: Reloj, Lluvia, Tormenta, Bosque, Café, Océano, Viento, Fuego
@@ -205,6 +217,7 @@ Este documento cubre las funcionalidades core de la pantalla Focus, excluyendo i
 - **Prioridad:** Media
 
 #### RF-012: Gestión de sonidos
+
 - **Descripción:** Configuración y personalización de sonidos ambientales.
 - **Funcionalidades:**
   - Seleccionar sonido antes de iniciar Focus
@@ -222,6 +235,7 @@ Este documento cubre las funcionalidades core de la pantalla Focus, excluyendo i
 ### 6. Estadísticas y Tracking
 
 #### RF-013: Registro de sesiones
+
 - **Descripción:** Guardar cada sesión de Focus para análisis posterior.
 - **Datos a registrar:**
   - ID único de sesión
@@ -241,6 +255,7 @@ Este documento cubre las funcionalidades core de la pantalla Focus, excluyendo i
 - **Prioridad:** Alta
 
 #### RF-014: Visualización de estadísticas
+
 - **Descripción:** Panel de estadísticas para analizar patrones de concentración.
 - **Métricas a mostrar:**
   - **Vista Diaria:**
@@ -270,6 +285,7 @@ Este documento cubre las funcionalidades core de la pantalla Focus, excluyendo i
 - **Prioridad:** Media
 
 #### RF-015: Objetivos y metas
+
 - **Descripción:** Permitir al usuario establecer objetivos de concentración.
 - **Funcionalidades:**
   - Establecer objetivo diario de Pomodoros (ej: 8 pomodoros/día)
@@ -289,6 +305,7 @@ Este documento cubre las funcionalidades core de la pantalla Focus, excluyendo i
 ### 7. Notificaciones y Alertas
 
 #### RF-016: Notificaciones de finalización
+
 - **Descripción:** Alertas para indicar el fin de intervalos.
 - **Tipos de notificaciones:**
   - Fin de intervalo de trabajo (Pomodoro)
@@ -311,6 +328,7 @@ Este documento cubre las funcionalidades core de la pantalla Focus, excluyendo i
 ### 8. Configuración Personalizable
 
 #### RF-017: Ajustes de Pomodoro
+
 - **Descripción:** Personalizar los parámetros de la técnica Pomodoro.
 - **Parámetros configurables:**
   - Duración del intervalo de trabajo (5-60 minutos, default: 25)
@@ -326,6 +344,7 @@ Este documento cubre las funcionalidades core de la pantalla Focus, excluyendo i
 - **Prioridad:** Media
 
 #### RF-018: Ajustes generales de Focus
+
 - **Descripción:** Configuraciones adicionales del sistema Focus.
 - **Parámetros:**
   - Auto-acceso a pantalla completa (sí/no)
@@ -345,6 +364,7 @@ Este documento cubre las funcionalidades core de la pantalla Focus, excluyendo i
 ### 9. Integración con Tareas
 
 #### RF-019: Marcar tarea como completada
+
 - **Descripción:** Al finalizar Focus, opción de marcar la tarea como completada.
 - **Funcionalidades:**
   - Diálogo al finalizar: "¿Deseas marcar la tarea como completada?"
@@ -359,6 +379,7 @@ Este documento cubre las funcionalidades core de la pantalla Focus, excluyendo i
 - **Prioridad:** Media
 
 #### RF-020: Historial de Focus por tarea
+
 - **Descripción:** Ver todas las sesiones de Focus realizadas para una tarea específica.
 - **Funcionalidades:**
   - En el detalle de la tarea, sección "Historial de Focus"
@@ -376,6 +397,7 @@ Este documento cubre las funcionalidades core de la pantalla Focus, excluyendo i
 ### 10. Sincronización Multiplataforma
 
 #### RF-021: Sincronización de datos
+
 - **Descripción:** Mantener consistencia entre dispositivos.
 - **Datos a sincronizar:**
   - Sesiones de Focus (todas)
@@ -392,6 +414,7 @@ Este documento cubre las funcionalidades core de la pantalla Focus, excluyendo i
 - **Prioridad:** Alta
 
 #### RF-022: Continuidad entre dispositivos
+
 - **Descripción:** Permitir continuar una sesión iniciada en otro dispositivo.
 - **Funcionalidades:**
   - Detectar sesión activa en otro dispositivo
@@ -408,24 +431,64 @@ Este documento cubre las funcionalidades core de la pantalla Focus, excluyendo i
 
 ## Modelo de Datos
 
+### Definición de Sesión
+
+**Concepto Fundamental:** Una `FocusSession` representa un **ciclo completo de trabajo** desde que el usuario presiona "Iniciar" hasta que presiona "Detener", potencialmente abarcando múltiples intervalos de pomodoro y descansos.
+
+#### Características de una Sesión:
+
+- **Duración:** Una sesión puede incluir múltiples pomodoros (ej: 4 pomodoros + 3 descansos cortos + 1 descanso largo ≈ 2 horas)
+- **Persistencia:** La sesión solo se guarda en el historial cuando el usuario llama a `stopFocus()`
+- **Recuperación:** El progreso intermedio se guarda en AsyncStorage después de cada fase de trabajo para recuperación en caso de cierre inesperado
+- **Contador:** El campo `pomodorosCompleted` rastrea cuántos intervalos de trabajo se completaron durante toda la sesión
+
+#### Ejemplo de Flujo:
+
+```
+1. Usuario presiona "Iniciar" → Crea FocusSession { pomodorosCompleted: 0 }
+2. Trabajo 25min → completa → pomodorosCompleted = 1, guarda en AsyncStorage
+3. Descanso corto 5min → completa → continúa
+4. Trabajo 25min → completa → pomodorosCompleted = 2, guarda en AsyncStorage
+5. ... (continúa el ciclo)
+6. Usuario presiona "Detener" → Guarda sesión final en historial con pomodorosCompleted total
+```
+
+#### Justificación del Diseño:
+
+- ✅ Se alinea con el concepto de "sesión de trabajo" (período extendido de concentración)
+- ✅ Coincide con el esquema de base de datos (no hay campo `phase` en `focus_sessions`)
+- ✅ Soporta el límite de `max_pauses_per_session` a través de múltiples intervalos
+- ✅ Permite recuperación si la aplicación se cierra durante una sesión larga
+- ✅ Las estadísticas cuentan sesiones y pomodoros por separado para mayor precisión
+
+#### Implicaciones para Estadísticas:
+
+- **Sesiones completadas:** Cuenta cuántas veces el usuario inició y completó un ciclo de trabajo
+- **Pomodoros completados:** Suma el campo `pomodorosCompleted` de todas las sesiones (no cuenta sesiones)
+- **Ejemplo:** 2 sesiones con 4 pomodoros cada una = 2 sesiones, 8 pomodoros
+
+---
+
 ### Tabla: `focus_sessions`
 
-| Campo | Tipo | Descripción | Restricciones |
-|-------|------|-------------|---------------|
-| id | UUID | Identificador único de sesión | PRIMARY KEY |
-| user_id | UUID | ID del usuario | NOT NULL, FOREIGN KEY |
-| task_id | UUID | ID de la tarea asociada | NULLABLE, FOREIGN KEY |
-| mode | ENUM | Modo utilizado: 'pomodoro', 'stopwatch' | NOT NULL |
-| start_time | TIMESTAMP | Fecha y hora de inicio | NOT NULL |
-| end_time | TIMESTAMP | Fecha y hora de fin | NULLABLE |
-| duration_seconds | INTEGER | Duración total en segundos | NOT NULL, >= 0 |
-| pauses_count | INTEGER | Número de pausas realizadas | DEFAULT 0, >= 0 |
-| status | ENUM | Estado: 'completed', 'interrupted', 'active' | NOT NULL |
-| white_noise_used | VARCHAR(50) | Sonido ambiental utilizado | NULLABLE |
-| created_at | TIMESTAMP | Fecha de creación del registro | DEFAULT NOW() |
-| updated_at | TIMESTAMP | Última actualización | DEFAULT NOW() |
+| Campo               | Tipo        | Descripción                                    | Restricciones         |
+| ------------------- | ----------- | ---------------------------------------------- | --------------------- |
+| id                  | UUID        | Identificador único de sesión                  | PRIMARY KEY           |
+| user_id             | UUID        | ID del usuario                                 | NOT NULL, FOREIGN KEY |
+| task_id             | UUID        | ID de la tarea asociada                        | NULLABLE, FOREIGN KEY |
+| mode                | ENUM        | Modo utilizado: 'pomodoro', 'stopwatch'        | NOT NULL              |
+| start_time          | TIMESTAMP   | Fecha y hora de inicio                         | NOT NULL              |
+| end_time            | TIMESTAMP   | Fecha y hora de fin                            | NULLABLE              |
+| duration_seconds    | INTEGER     | Duración total en segundos                     | NOT NULL, >= 0        |
+| pauses_count        | INTEGER     | Número de pausas realizadas                    | DEFAULT 0, >= 0       |
+| pomodoros_completed | INTEGER     | Número de pomodoros completados en esta sesión | DEFAULT 0, >= 0       |
+| status              | ENUM        | Estado: 'completed', 'interrupted', 'active'   | NOT NULL              |
+| white_noise_used    | VARCHAR(50) | Sonido ambiental utilizado                     | NULLABLE              |
+| created_at          | TIMESTAMP   | Fecha de creación del registro                 | DEFAULT NOW()         |
+| updated_at          | TIMESTAMP   | Última actualización                           | DEFAULT NOW()         |
 
 **Índices:**
+
 - `idx_user_sessions` en (`user_id`, `start_time`)
 - `idx_task_sessions` en (`task_id`, `start_time`)
 - `idx_status` en (`status`)
@@ -434,41 +497,42 @@ Este documento cubre las funcionalidades core de la pantalla Focus, excluyendo i
 
 ### Tabla: `focus_settings`
 
-| Campo | Tipo | Descripción | Restricciones |
-|-------|------|-------------|---------------|
-| user_id | UUID | ID del usuario | PRIMARY KEY, FOREIGN KEY |
-| pomo_work_duration | INTEGER | Minutos de trabajo | DEFAULT 25, BETWEEN 5 AND 60 |
-| pomo_short_break | INTEGER | Minutos de descanso corto | DEFAULT 5, BETWEEN 1 AND 30 |
-| pomo_long_break | INTEGER | Minutos de descanso largo | DEFAULT 15, BETWEEN 5 AND 60 |
-| pomos_before_long_break | INTEGER | Pomodoros antes de descanso largo | DEFAULT 4, BETWEEN 2 AND 8 |
-| max_pauses_per_session | INTEGER | Pausas máximas permitidas | DEFAULT 3, BETWEEN 0 AND 5 |
-| daily_pomo_goal | INTEGER | Objetivo diario de pomodoros | DEFAULT 8, >= 0 |
-| daily_hours_goal | DECIMAL(4,2) | Objetivo diario de horas | DEFAULT 4.0, >= 0 |
-| auto_fullscreen | BOOLEAN | Auto-activar pantalla completa | DEFAULT FALSE |
-| auto_fullscreen_delay | INTEGER | Segundos de delay | DEFAULT 5, BETWEEN 0 AND 30 |
-| default_white_noise | VARCHAR(50) | Sonido por defecto | NULLABLE |
-| keep_screen_on | BOOLEAN | Mantener pantalla encendida | DEFAULT TRUE |
-| enable_dnd | BOOLEAN | Activar No Molestar | DEFAULT FALSE |
-| confirm_stop | BOOLEAN | Confirmar al detener | DEFAULT TRUE |
-| auto_complete_task | BOOLEAN | Auto-completar tarea al finalizar | DEFAULT FALSE |
-| notification_sound | VARCHAR(50) | Sonido de notificación | DEFAULT 'bell' |
-| notification_type | ENUM | Tipo: 'sound', 'vibration', 'both', 'silent' | DEFAULT 'both' |
-| created_at | TIMESTAMP | Fecha de creación | DEFAULT NOW() |
-| updated_at | TIMESTAMP | Última actualización | DEFAULT NOW() |
+| Campo                   | Tipo         | Descripción                                  | Restricciones                |
+| ----------------------- | ------------ | -------------------------------------------- | ---------------------------- |
+| user_id                 | UUID         | ID del usuario                               | PRIMARY KEY, FOREIGN KEY     |
+| pomo_work_duration      | INTEGER      | Minutos de trabajo                           | DEFAULT 25, BETWEEN 5 AND 60 |
+| pomo_short_break        | INTEGER      | Minutos de descanso corto                    | DEFAULT 5, BETWEEN 1 AND 30  |
+| pomo_long_break         | INTEGER      | Minutos de descanso largo                    | DEFAULT 15, BETWEEN 5 AND 60 |
+| pomos_before_long_break | INTEGER      | Pomodoros antes de descanso largo            | DEFAULT 4, BETWEEN 2 AND 8   |
+| max_pauses_per_session  | INTEGER      | Pausas máximas permitidas                    | DEFAULT 3, BETWEEN 0 AND 5   |
+| daily_pomo_goal         | INTEGER      | Objetivo diario de pomodoros                 | DEFAULT 8, >= 0              |
+| daily_hours_goal        | DECIMAL(4,2) | Objetivo diario de horas                     | DEFAULT 4.0, >= 0            |
+| auto_fullscreen         | BOOLEAN      | Auto-activar pantalla completa               | DEFAULT FALSE                |
+| auto_fullscreen_delay   | INTEGER      | Segundos de delay                            | DEFAULT 5, BETWEEN 0 AND 30  |
+| default_white_noise     | VARCHAR(50)  | Sonido por defecto                           | NULLABLE                     |
+| keep_screen_on          | BOOLEAN      | Mantener pantalla encendida                  | DEFAULT TRUE                 |
+| enable_dnd              | BOOLEAN      | Activar No Molestar                          | DEFAULT FALSE                |
+| confirm_stop            | BOOLEAN      | Confirmar al detener                         | DEFAULT TRUE                 |
+| auto_complete_task      | BOOLEAN      | Auto-completar tarea al finalizar            | DEFAULT FALSE                |
+| notification_sound      | VARCHAR(50)  | Sonido de notificación                       | DEFAULT 'bell'               |
+| notification_type       | ENUM         | Tipo: 'sound', 'vibration', 'both', 'silent' | DEFAULT 'both'               |
+| created_at              | TIMESTAMP    | Fecha de creación                            | DEFAULT NOW()                |
+| updated_at              | TIMESTAMP    | Última actualización                         | DEFAULT NOW()                |
 
 ---
 
 ### Tabla: `focus_favorites`
 
-| Campo | Tipo | Descripción | Restricciones |
-|-------|------|-------------|---------------|
-| id | UUID | Identificador único | PRIMARY KEY |
-| user_id | UUID | ID del usuario | NOT NULL, FOREIGN KEY |
-| task_id | UUID | ID de la tarea | NOT NULL, FOREIGN KEY |
-| order_position | INTEGER | Posición en la lista | NOT NULL, >= 1 |
-| created_at | TIMESTAMP | Fecha de creación | DEFAULT NOW() |
+| Campo          | Tipo      | Descripción          | Restricciones         |
+| -------------- | --------- | -------------------- | --------------------- |
+| id             | UUID      | Identificador único  | PRIMARY KEY           |
+| user_id        | UUID      | ID del usuario       | NOT NULL, FOREIGN KEY |
+| task_id        | UUID      | ID de la tarea       | NOT NULL, FOREIGN KEY |
+| order_position | INTEGER   | Posición en la lista | NOT NULL, >= 1        |
+| created_at     | TIMESTAMP | Fecha de creación    | DEFAULT NOW()         |
 
 **Índices:**
+
 - `idx_user_favorites` en (`user_id`, `order_position`)
 - `unique_user_task` UNIQUE en (`user_id`, `task_id`)
 
@@ -476,19 +540,20 @@ Este documento cubre las funcionalidades core de la pantalla Focus, excluyendo i
 
 ### Tabla: `focus_goals_history`
 
-| Campo | Tipo | Descripción | Restricciones |
-|-------|------|-------------|---------------|
-| id | UUID | Identificador único | PRIMARY KEY |
-| user_id | UUID | ID del usuario | NOT NULL, FOREIGN KEY |
-| date | DATE | Fecha del objetivo | NOT NULL |
-| pomo_goal | INTEGER | Objetivo de pomodoros | NOT NULL |
-| pomo_achieved | INTEGER | Pomodoros logrados | DEFAULT 0 |
-| hours_goal | DECIMAL(4,2) | Objetivo de horas | NOT NULL |
-| hours_achieved | DECIMAL(4,2) | Horas logradas | DEFAULT 0.0 |
-| goal_met | BOOLEAN | Objetivo cumplido | DEFAULT FALSE |
-| created_at | TIMESTAMP | Fecha de creación | DEFAULT NOW() |
+| Campo          | Tipo         | Descripción           | Restricciones         |
+| -------------- | ------------ | --------------------- | --------------------- |
+| id             | UUID         | Identificador único   | PRIMARY KEY           |
+| user_id        | UUID         | ID del usuario        | NOT NULL, FOREIGN KEY |
+| date           | DATE         | Fecha del objetivo    | NOT NULL              |
+| pomo_goal      | INTEGER      | Objetivo de pomodoros | NOT NULL              |
+| pomo_achieved  | INTEGER      | Pomodoros logrados    | DEFAULT 0             |
+| hours_goal     | DECIMAL(4,2) | Objetivo de horas     | NOT NULL              |
+| hours_achieved | DECIMAL(4,2) | Horas logradas        | DEFAULT 0.0           |
+| goal_met       | BOOLEAN      | Objetivo cumplido     | DEFAULT FALSE         |
+| created_at     | TIMESTAMP    | Fecha de creación     | DEFAULT NOW()         |
 
 **Índices:**
+
 - `idx_user_date` UNIQUE en (`user_id`, `date`)
 
 ---
@@ -711,6 +776,7 @@ Si usuario elige "Continuar aquí":
 ### Tecnologías Sugeridas
 
 #### Frontend
+
 - **Framework:** React / Vue / Svelte
 - **State Management:** Zustand / Redux / Pinia
 - **UI Components:** shadcn/ui / MUI / Ant Design
@@ -718,6 +784,7 @@ Si usuario elige "Continuar aquí":
 - **Audio:** Howler.js / Web Audio API
 
 #### Backend
+
 - **API:** Node.js (Express) / Python (FastAPI) / Go (Gin)
 - **Base de Datos:** PostgreSQL / MongoDB
 - **Real-time:** WebSockets (Socket.io) / Server-Sent Events
@@ -725,6 +792,7 @@ Si usuario elige "Continuar aquí":
 - **Autenticación:** JWT / OAuth2
 
 #### Sincronización
+
 - **Protocolo:** WebSockets para tiempo real
 - **Backup:** Polling cada 30 segundos
 - **Resolución de conflictos:** Last-write-wins (timestamp)
@@ -734,6 +802,7 @@ Si usuario elige "Continuar aquí":
 ## Priorización de Desarrollo
 
 ### Fase 1: MVP (Funcionalidad Básica)
+
 - ✅ RF-001: Activación de Focus
 - ✅ RF-002: Modo Pomodoro básico
 - ✅ RF-005: Selección de tarea
@@ -744,6 +813,7 @@ Si usuario elige "Continuar aquí":
 **Tiempo estimado:** 2-3 semanas
 
 ### Fase 2: Funcionalidad Extendida
+
 - ✅ RF-003: Modo Stopwatch
 - ✅ RF-004: Alternancia entre modos
 - ✅ RF-011: Sonidos ambientales
@@ -754,6 +824,7 @@ Si usuario elige "Continuar aquí":
 **Tiempo estimado:** 3-4 semanas
 
 ### Fase 3: Mejoras UX
+
 - ✅ RF-008: Modo pantalla completa
 - ✅ RF-009: Estilos visuales
 - ✅ RF-012: Gestión de sonidos
@@ -763,6 +834,7 @@ Si usuario elige "Continuar aquí":
 **Tiempo estimado:** 2-3 semanas
 
 ### Fase 4: Características Avanzadas
+
 - ✅ RF-007: Tareas favoritas
 - ✅ RF-010: Ventana flotante (desktop)
 - ✅ RF-020: Historial por tarea
@@ -775,22 +847,26 @@ Si usuario elige "Continuar aquí":
 ## Consideraciones Técnicas
 
 ### Rendimiento
+
 - El temporizador debe usar `requestAnimationFrame` o Web Workers para evitar inconsistencias
 - Los sonidos deben pre-cargarse en memoria para evitar delays al iniciar
 - Las estadísticas deben calcularse de forma lazy (solo cuando se visualizan)
 
 ### Accesibilidad
+
 - Atajos de teclado para todas las acciones principales
 - Soporte para lectores de pantalla
 - Modo de alto contraste
 - Tamaños de fuente ajustables
 
 ### Seguridad
+
 - Las sesiones activas deben expirar después de 24 horas de inactividad
 - Validación de límites en todos los inputs del usuario
 - Sanitización de datos antes de persistir
 
 ### Testing
+
 - **Unit tests:** Lógica de temporizador, cálculos de estadísticas
 - **Integration tests:** Flujos de inicio/pausa/detener
 - **E2E tests:** Flujo completo de usuario
@@ -811,12 +887,15 @@ Si usuario elige "Continuar aquí":
 ## Anexos
 
 ### A. Mockups sugeridos
+
 (Aquí puedes añadir wireframes o mockups de las pantallas principales)
 
 ### B. Casos de uso detallados
+
 (Documentación extendida de flujos específicos)
 
 ### C. API Endpoints
+
 (Especificación detallada de la API RESTful)
 
 ---

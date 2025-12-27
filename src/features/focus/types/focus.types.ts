@@ -41,6 +41,14 @@ export interface FocusSession {
   /** Number of times the session was paused */
   pausesCount: number;
 
+  /**
+   * Number of pomodoros completed in this session
+   * Only relevant for Pomodoro mode. Tracks how many work intervals
+   * were completed during the entire session lifecycle.
+   * @default 0
+   */
+  pomodorosCompleted: number;
+
   /** Current status of the session */
   status: SessionStatus;
 
