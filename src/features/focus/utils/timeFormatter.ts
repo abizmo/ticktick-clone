@@ -161,18 +161,33 @@ export const hoursToSeconds = (hours: number): number => {
 // ============================================================================
 
 /**
- * Parse MM:SS format to seconds
+ * Parse time string to seconds
+ *
+ * Accepts flexible input formats for user convenience:
+ * - "MM:SS" format with 1-2 digit minutes (e.g., "5:30" or "05:30")
+ * - "M:SS" format with single digit minutes (e.g., "5:30")
+ * - Seconds must always be 2 digits (e.g., "5:05" not "5:5")
+ *
+ * Note: This parser is intentionally more lenient than formatTime(),
+ * which always outputs zero-padded minutes (e.g., "05:30").
+ * This follows the principle: "Be liberal in what you accept,
+ * conservative in what you send."
  *
  * Examples:
  * - "00:00" → 0
+ * - "5:30" → 330 (accepts single digit minutes)
+ * - "05:30" → 330 (accepts zero-padded minutes)
  * - "01:30" → 90
  * - "25:00" → 1500
+ * - "5:5" → null (seconds must be 2 digits)
+ * - "5:60" → null (seconds must be < 60)
  *
- * @param timeString - Time string in MM:SS format
+ * @param timeString - Time string in M:SS or MM:SS format
  * @returns Time in seconds, or null if invalid format
  */
 export const parseTimeString = (timeString: string): number | null => {
-  // Validate format
+  // Validate format: 1-2 digit minutes, colon, 2 digit seconds
+  // Examples: "5:30", "05:30", "25:00"
   const timeRegex = /^(\d{1,2}):(\d{2})$/;
   const match = timeString.match(timeRegex);
 
@@ -183,7 +198,7 @@ export const parseTimeString = (timeString: string): number | null => {
   const minutes = parseInt(match[1], 10);
   const seconds = parseInt(match[2], 10);
 
-  // Validate seconds range
+  // Validate seconds range (must be 0-59)
   if (seconds >= 60) {
     return null;
   }
