@@ -277,14 +277,12 @@ export const useFocusStore = create<FocusStoreState>()(
           // Clear current session from AsyncStorage (crash recovery cleanup)
           await storageService.saveCurrentSession(null);
 
-          // Add to sessions list
-          const updatedSessions = [finalSession, ...state.sessions];
-
-          // Reset state
-          set({
+          // Reset state and add to sessions list using latest state
+          // Use functional form to prevent stale state after async operations
+          set(prev => ({
             timerState: {...INITIAL_TIMER_STATE},
-            sessions: updatedSessions,
-          });
+            sessions: [finalSession, ...prev.sessions],
+          }));
 
           // Recalculate today's stats
           get().calculateTodayStats();
