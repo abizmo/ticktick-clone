@@ -43,6 +43,21 @@ import {
   DEFAULT_FOCUS_SETTINGS,
   INITIAL_TIMER_STATE,
   INITIAL_TODAY_STATS,
+  isValidWorkDuration,
+  isValidShortBreak,
+  isValidLongBreak,
+  isValidPomosBeforeLongBreak,
+  isValidMaxPauses,
+  MIN_WORK_DURATION,
+  MAX_WORK_DURATION,
+  MIN_SHORT_BREAK,
+  MAX_SHORT_BREAK,
+  MIN_LONG_BREAK,
+  MAX_LONG_BREAK,
+  MIN_POMOS_BEFORE_LONG_BREAK,
+  MAX_POMOS_BEFORE_LONG_BREAK,
+  MIN_PAUSES,
+  MAX_PAUSES,
 } from '../constants/defaults';
 
 // ============================================================================
@@ -82,10 +97,11 @@ export const useFocusStore = create<FocusStoreState>()(
        * Start a new Focus session
        *
        * Creates a new session, initializes the timer, and sets up event listeners.
+       * Fixed: Now saves session immediately to AsyncStorage for crash recovery.
        *
        * @param taskId - Optional task ID to associate with the session
        */
-      startFocus: (taskId?: string) => {
+      startFocus: async (taskId?: string) => {
         const state = get();
 
         // Validate: No active session
@@ -116,6 +132,10 @@ export const useFocusStore = create<FocusStoreState>()(
             timerState.mode,
           );
 
+          // ✅ CRITICAL: Save to AsyncStorage IMMEDIATELY for crash recovery
+          // This ensures the session can be restored even if app crashes before first work phase
+          await storageService.saveCurrentSession(newSession);
+
           // Start timer service
           const timer = getTimerService();
           timer.start(duration);
@@ -134,10 +154,23 @@ export const useFocusStore = create<FocusStoreState>()(
           });
 
           console.log(
-            `[FocusStore] Started Focus session (${timerState.currentPhase}, ${duration}s)`,
+            `[FocusStore] Started Focus session (${timerState.currentPhase}, ${duration}s) - persisted for crash recovery`,
           );
         } catch (error) {
           console.error('[FocusStore] Error starting Focus:', error);
+
+          // ✅ Set error state for UI display (consistent with other actions)
+          const errorMessage =
+            error instanceof Error ? error.message : String(error);
+          set({
+            error: createError(
+              'session_error',
+              'Failed to start Focus session. Please try again.',
+              'error',
+              errorMessage,
+              true,
+            ),
+          });
         }
       },
 
@@ -191,6 +224,19 @@ export const useFocusStore = create<FocusStoreState>()(
           console.log('[FocusStore] Paused Focus session');
         } catch (error) {
           console.error('[FocusStore] Error pausing Focus:', error);
+
+          // ✅ Set error state for UI display (consistent with other actions)
+          const errorMessage =
+            error instanceof Error ? error.message : String(error);
+          set({
+            error: createError(
+              'timer_error',
+              'Failed to pause Focus session. Please try again.',
+              'error',
+              errorMessage,
+              true,
+            ),
+          });
         }
       },
 
@@ -224,6 +270,19 @@ export const useFocusStore = create<FocusStoreState>()(
           console.log('[FocusStore] Resumed Focus session');
         } catch (error) {
           console.error('[FocusStore] Error resuming Focus:', error);
+
+          // ✅ Set error state for UI display (consistent with other actions)
+          const errorMessage =
+            error instanceof Error ? error.message : String(error);
+          set({
+            error: createError(
+              'timer_error',
+              'Failed to resume Focus session. Please try again.',
+              'error',
+              errorMessage,
+              true,
+            ),
+          });
         }
       },
 
@@ -330,6 +389,7 @@ export const useFocusStore = create<FocusStoreState>()(
        *
        * Updates settings and persists to storage.
        * Fixed: Save to storage FIRST, then update state
+       * Fixed: Validate settings before saving
        *
        * @param newSettings - Partial settings to update
        */
@@ -346,6 +406,12 @@ export const useFocusStore = create<FocusStoreState>()(
             ...newSettings,
           };
 
+          // ✅ VALIDATE settings before saving
+          const validationErrors = validateSettings(updatedSettings);
+          if (validationErrors.length > 0) {
+            throw new Error(validationErrors.join('. '));
+          }
+
           // Save to storage FIRST (error recovery fix)
           await storageService.saveFocusSettings(updatedSettings);
 
@@ -359,10 +425,16 @@ export const useFocusStore = create<FocusStoreState>()(
           // Set error state for UI
           const errorMessage =
             error instanceof Error ? error.message : String(error);
+
+          // Determine error type based on error message
+          const isValidationError = errorMessage.includes('must be between');
+
           set({
             error: createError(
-              'storage_save_failed',
-              'Failed to save your settings. Please try again.',
+              isValidationError ? 'validation_error' : 'storage_save_failed',
+              isValidationError
+                ? 'Invalid settings. ' + errorMessage
+                : 'Failed to save your settings. Please try again.',
               'error',
               errorMessage,
               true,
@@ -633,6 +705,17 @@ const setupTimerListeners = (
 
     console.log('[FocusStore] Timer completed');
 
+    // ✅ CRITICAL: Validate session exists before processing transitions
+    // If session was stopped while phase was completing, stop the timer
+    if (!currentSession) {
+      console.warn(
+        '[FocusStore] No active session during complete event - stopping timer',
+      );
+      const timer = getTimerService();
+      timer.stop();
+      return;
+    }
+
     // If in work phase, increment pomodoros
     const isWorkPhase = pomodoroCalculator.isWorkPhase(timerState.currentPhase);
 
@@ -733,6 +816,49 @@ const createError = (
     timestamp: new Date(),
     dismissible,
   };
+};
+
+/**
+ * Validate Focus settings
+ *
+ * Validates that all settings values are within acceptable ranges.
+ * Returns an array of validation error messages (empty if valid).
+ *
+ * @param settings - Settings to validate
+ * @returns Array of validation error messages (empty if valid)
+ */
+const validateSettings = (settings: FocusSettings): string[] => {
+  const errors: string[] = [];
+
+  if (!isValidWorkDuration(settings.pomoWorkDuration)) {
+    errors.push(
+      `Work duration must be between ${MIN_WORK_DURATION} and ${MAX_WORK_DURATION} minutes`,
+    );
+  }
+
+  if (!isValidShortBreak(settings.pomoShortBreak)) {
+    errors.push(
+      `Short break must be between ${MIN_SHORT_BREAK} and ${MAX_SHORT_BREAK} minutes`,
+    );
+  }
+
+  if (!isValidLongBreak(settings.pomoLongBreak)) {
+    errors.push(
+      `Long break must be between ${MIN_LONG_BREAK} and ${MAX_LONG_BREAK} minutes`,
+    );
+  }
+
+  if (!isValidPomosBeforeLongBreak(settings.pomosBeforeLongBreak)) {
+    errors.push(
+      `Pomodoros before long break must be between ${MIN_POMOS_BEFORE_LONG_BREAK} and ${MAX_POMOS_BEFORE_LONG_BREAK}`,
+    );
+  }
+
+  if (!isValidMaxPauses(settings.maxPausesPerSession)) {
+    errors.push(`Max pauses must be between ${MIN_PAUSES} and ${MAX_PAUSES}`);
+  }
+
+  return errors;
 };
 
 /**
