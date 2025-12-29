@@ -226,7 +226,7 @@ export class TimerService extends SimpleEventEmitter {
 
     this.emit('stop', remainingTime);
 
-    console.log(`[TimerService] Stopped timer`);
+    console.log('[TimerService] Stopped timer');
   }
 
   /**
@@ -396,7 +396,7 @@ export class TimerService extends SimpleEventEmitter {
     this.status = 'completed';
     this.emit('complete', 0);
 
-    console.log(`[TimerService] Timer completed`);
+    console.log('[TimerService] Timer completed');
   }
 
   // ==========================================================================
@@ -410,7 +410,7 @@ export class TimerService extends SimpleEventEmitter {
   destroy(): void {
     this.stop();
     this.removeAllListeners();
-    console.log(`[TimerService] Destroyed`);
+    console.log('[TimerService] Destroyed');
   }
 }
 
