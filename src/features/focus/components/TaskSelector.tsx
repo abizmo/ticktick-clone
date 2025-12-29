@@ -33,11 +33,6 @@ import {mockTasks, mockLists} from '../../../data/mockData';
 import type {Task} from '../types/focus.types';
 
 /**
- * TaskSelector component props interface
- */
-interface TaskSelectorProps {}
-
-/**
  * Task item for the selection list
  */
 interface TaskItem {
@@ -53,7 +48,7 @@ interface TaskItem {
  *
  * @returns React.JSX.Element
  */
-const TaskSelector: React.FC<TaskSelectorProps> = (): React.JSX.Element => {
+const TaskSelector: React.FC = (): React.JSX.Element => {
   // Subscribe to store state and actions
   const selectedTask = useFocusStore(state => state.selectedTask);
   const currentSession = useFocusStore(state => state.currentSession);
@@ -91,7 +86,7 @@ const TaskSelector: React.FC<TaskSelectorProps> = (): React.JSX.Element => {
 
     // Add "No task" option at the beginning
     return [{task: null, listName: undefined}, ...taskItems];
-  }, []);
+  }, [mockTasks, mockLists]);
 
   /**
    * Get priority color for task
@@ -123,7 +118,7 @@ const TaskSelector: React.FC<TaskSelectorProps> = (): React.JSX.Element => {
       case 'low':
         return '!';
       default:
-        return '';
+        return '!'; // Consistent default with getPriorityColor
     }
   };
 
@@ -212,17 +207,15 @@ const TaskSelector: React.FC<TaskSelectorProps> = (): React.JSX.Element => {
                 numberOfLines={2}>
                 {item.task?.title}
               </Text>
-              {item.task && (
-                <View
-                  style={[
-                    styles.priorityIndicator,
-                    {backgroundColor: getPriorityColor(item.task.priority)},
-                  ]}>
-                  <Text style={styles.priorityText}>
-                    {getPriorityIndicator(item.task.priority)}
-                  </Text>
-                </View>
-              )}
+              <View
+                style={[
+                  styles.priorityIndicator,
+                  {backgroundColor: getPriorityColor(item.task!.priority)},
+                ]}>
+                <Text style={styles.priorityText}>
+                  {getPriorityIndicator(item.task!.priority)}
+                </Text>
+              </View>
             </View>
 
             <View style={styles.taskMeta}>
@@ -303,7 +296,7 @@ const TaskSelector: React.FC<TaskSelectorProps> = (): React.JSX.Element => {
           <FlatList
             data={availableTasks}
             renderItem={renderTaskItem}
-            keyExtractor={(item, index) => item.task?.id ?? `no-task-${index}`}
+            keyExtractor={item => item.task?.id ?? 'no-task'}
             style={styles.taskList}
             contentContainerStyle={styles.taskListContent}
             showsVerticalScrollIndicator={true}

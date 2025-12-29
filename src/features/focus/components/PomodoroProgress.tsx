@@ -22,11 +22,6 @@ import {View, Text, StyleSheet} from 'react-native';
 import {useFocusStore} from '../store/focusStore';
 
 /**
- * PomodoroProgress component props interface
- */
-interface PomodoroProgressProps {}
-
-/**
  * PomodoroProgress Component
  *
  * Renders progress indicators for Pomodoro sessions including
@@ -34,9 +29,7 @@ interface PomodoroProgressProps {}
  *
  * @returns React.JSX.Element
  */
-const PomodoroProgress: React.FC<
-  PomodoroProgressProps
-> = (): React.JSX.Element => {
+const PomodoroProgress: React.FC = (): React.JSX.Element => {
   // Subscribe to store state
   const todayStats = useFocusStore(state => state.todayStats);
   const timerState = useFocusStore(state => state.timerState);
@@ -51,13 +44,24 @@ const PomodoroProgress: React.FC<
       return null;
     }
 
+    // Validate configuration for long break interval
+    const pomosBeforeLongBreak = settings.pomosBeforeLongBreak;
+    if (
+      typeof pomosBeforeLongBreak !== 'number' ||
+      !Number.isFinite(pomosBeforeLongBreak) ||
+      pomosBeforeLongBreak <= 0
+    ) {
+      // Fallback: treat next break as a short break when configuration is invalid
+      return 'short';
+    }
+
     // Calculate total pomodoros (today + current session)
     const totalPomodoros =
       todayStats.pomodorosCompleted + timerState.pomodorosCompleted;
 
     // Check if next break should be long
     const nextPomodoroCount = totalPomodoros + 1;
-    const isLongBreak = nextPomodoroCount % settings.pomosBeforeLongBreak === 0;
+    const isLongBreak = nextPomodoroCount % pomosBeforeLongBreak === 0;
 
     return isLongBreak ? 'long' : 'short';
   };

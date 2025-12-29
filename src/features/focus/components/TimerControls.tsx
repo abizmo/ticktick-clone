@@ -28,11 +28,6 @@ import {
 import {useFocusStore} from '../store/focusStore';
 
 /**
- * TimerControls component props interface
- */
-interface TimerControlsProps {}
-
-/**
  * TimerControls Component
  *
  * Renders control buttons for the Focus timer with proper state management
@@ -40,7 +35,7 @@ interface TimerControlsProps {}
  *
  * @returns React.JSX.Element
  */
-const TimerControls: React.FC<TimerControlsProps> = (): React.JSX.Element => {
+const TimerControls: React.FC = (): React.JSX.Element => {
   // Subscribe to store state and actions
   const timerState = useFocusStore(state => state.timerState);
   const settings = useFocusStore(state => state.settings);

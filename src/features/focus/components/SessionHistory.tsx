@@ -28,11 +28,6 @@ import {mockTasks, mockLists} from '../../../data/mockData';
 import type {FocusSession} from '../types/focus.types';
 
 /**
- * SessionHistory component props interface
- */
-interface SessionHistoryProps {}
-
-/**
  * Enhanced session item with task and list information
  */
 interface SessionItem extends FocusSession {
@@ -48,7 +43,7 @@ interface SessionItem extends FocusSession {
  *
  * @returns React.JSX.Element
  */
-const SessionHistory: React.FC<SessionHistoryProps> = (): React.JSX.Element => {
+const SessionHistory: React.FC = (): React.JSX.Element => {
   // Subscribe to store state
   const sessions = useFocusStore(state => state.sessions);
   const todayStats = useFocusStore(state => state.todayStats);
@@ -88,7 +83,7 @@ const SessionHistory: React.FC<SessionHistoryProps> = (): React.JSX.Element => {
         listName,
       };
     });
-  }, [sessions]);
+  }, [sessions, mockTasks, mockLists]);
 
   /**
    * Get status icon for session
@@ -126,7 +121,7 @@ const SessionHistory: React.FC<SessionHistoryProps> = (): React.JSX.Element => {
    * Format session time (start time)
    */
   const formatSessionTime = (date: Date): string => {
-    return date.toLocaleTimeString('en-US', {
+    return date.toLocaleTimeString(undefined, {
       hour: '2-digit',
       minute: '2-digit',
       hour12: false,

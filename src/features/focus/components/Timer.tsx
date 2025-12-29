@@ -30,6 +30,7 @@ const STROKE_WIDTH = 8;
 
 /**
  * Timer component props interface
+ * Empty interface to maintain consistency with other components
  */
 interface TimerProps {}
 
@@ -50,7 +51,7 @@ const Timer: React.FC<TimerProps> = (): React.JSX.Element => {
   const timerState = useFocusStore(state => state.timerState);
   const settings = useFocusStore(state => state.settings);
 
-  // Animated value for progress
+  // Animated values for progress segments
   const progressAnim = useRef(new Animated.Value(0)).current;
 
   // Calculate progress percentage for visual indicator
@@ -116,9 +117,34 @@ const Timer: React.FC<TimerProps> = (): React.JSX.Element => {
     Animated.timing(progressAnim, {
       toValue: progress,
       duration: 300,
-      useNativeDriver: true,
+      useNativeDriver: false, // Changed to false for transform scale
     }).start();
   }, [progress, progressAnim]);
+
+  // Calculate rotation for progress segments
+  // We'll use 4 segments to create a proper circular progress
+  const getSegmentStyle = (segmentIndex: number) => {
+    const segmentProgress = progressAnim.interpolate({
+      inputRange: [
+        (segmentIndex - 1) * 25,
+        segmentIndex * 25,
+        (segmentIndex + 1) * 25,
+      ],
+      outputRange: ['0deg', '90deg', '90deg'],
+      extrapolate: 'clamp',
+    });
+
+    const segmentOpacity = progressAnim.interpolate({
+      inputRange: [(segmentIndex - 1) * 25, segmentIndex * 25],
+      outputRange: [0, 1],
+      extrapolate: 'clamp',
+    });
+
+    return {
+      transform: [{rotate: segmentProgress}],
+      opacity: segmentOpacity,
+    };
+  };
 
   return (
     <View style={styles.container}>
@@ -141,26 +167,81 @@ const Timer: React.FC<TimerProps> = (): React.JSX.Element => {
           ]}
         />
 
-        {/* Progress Circle - Using Animated.View with rotation */}
-        <Animated.View
+        {/* Progress Segments - 4 quarters for accurate progress */}
+        <View
           style={[
-            styles.progressCircle,
-            {
-              width: TIMER_SIZE,
-              height: TIMER_SIZE,
-              borderRadius: TIMER_SIZE / 2,
-              borderColor: phaseColor,
-              transform: [
-                {
-                  rotate: progressAnim.interpolate({
-                    inputRange: [0, 100],
-                    outputRange: ['0deg', '360deg'],
-                  }),
-                },
-              ],
-            },
-          ]}
-        />
+            styles.progressContainer,
+            {width: TIMER_SIZE, height: TIMER_SIZE},
+          ]}>
+          {/* Top-Right Quarter (0-25%) */}
+          <Animated.View
+            style={[
+              styles.progressSegment,
+              {
+                width: TIMER_SIZE,
+                height: TIMER_SIZE,
+                borderRadius: TIMER_SIZE / 2,
+                borderColor: phaseColor,
+                borderTopColor: phaseColor,
+                borderRightColor: 'transparent',
+                borderBottomColor: 'transparent',
+                borderLeftColor: 'transparent',
+              },
+              getSegmentStyle(1),
+            ]}
+          />
+          {/* Bottom-Right Quarter (25-50%) */}
+          <Animated.View
+            style={[
+              styles.progressSegment,
+              {
+                width: TIMER_SIZE,
+                height: TIMER_SIZE,
+                borderRadius: TIMER_SIZE / 2,
+                borderColor: phaseColor,
+                borderTopColor: 'transparent',
+                borderRightColor: phaseColor,
+                borderBottomColor: 'transparent',
+                borderLeftColor: 'transparent',
+              },
+              getSegmentStyle(2),
+            ]}
+          />
+          {/* Bottom-Left Quarter (50-75%) */}
+          <Animated.View
+            style={[
+              styles.progressSegment,
+              {
+                width: TIMER_SIZE,
+                height: TIMER_SIZE,
+                borderRadius: TIMER_SIZE / 2,
+                borderColor: phaseColor,
+                borderTopColor: 'transparent',
+                borderRightColor: 'transparent',
+                borderBottomColor: phaseColor,
+                borderLeftColor: 'transparent',
+              },
+              getSegmentStyle(3),
+            ]}
+          />
+          {/* Top-Left Quarter (75-100%) */}
+          <Animated.View
+            style={[
+              styles.progressSegment,
+              {
+                width: TIMER_SIZE,
+                height: TIMER_SIZE,
+                borderRadius: TIMER_SIZE / 2,
+                borderColor: phaseColor,
+                borderTopColor: 'transparent',
+                borderRightColor: 'transparent',
+                borderBottomColor: 'transparent',
+                borderLeftColor: phaseColor,
+              },
+              getSegmentStyle(4),
+            ]}
+          />
+        </View>
 
         {/* Timer Content */}
         <View style={styles.timerContent}>
@@ -186,7 +267,12 @@ const Timer: React.FC<TimerProps> = (): React.JSX.Element => {
           {timerState.status !== 'idle' && (
             <View
               style={[styles.statusIndicator, {backgroundColor: phaseColor}]}>
-              <Text style={styles.statusText}>
+              <Text
+                style={styles.statusText}
+                accessibilityLabel={
+                  timerState.status === 'running' ? 'Running' : 'Paused'
+                }
+                accessibilityRole="text">
                 {timerState.status === 'running' ? '●' : '⏸'}
               </Text>
             </View>
@@ -213,13 +299,12 @@ const styles = StyleSheet.create({
     borderWidth: STROKE_WIDTH,
     borderColor: '#E5E5E7',
   },
-  progressCircle: {
+  progressContainer: {
+    position: 'absolute',
+  },
+  progressSegment: {
     position: 'absolute',
     borderWidth: STROKE_WIDTH,
-    borderColor: '#007AFF',
-    borderTopColor: 'transparent',
-    borderRightColor: 'transparent',
-    borderBottomColor: 'transparent',
   },
   timerContent: {
     alignItems: 'center',
