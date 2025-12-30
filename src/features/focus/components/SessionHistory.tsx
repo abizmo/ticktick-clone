@@ -83,7 +83,7 @@ const SessionHistory: React.FC = (): React.JSX.Element => {
         listName,
       };
     });
-  }, [sessions, mockTasks, mockLists]);
+  }, [sessions]);
 
   /**
    * Get status icon for session

@@ -29,12 +29,6 @@ import {formatTime} from '../utils/timeFormatter';
 const STROKE_WIDTH = 8;
 
 /**
- * Timer component props interface
- * Empty interface to maintain consistency with other components
- */
-interface TimerProps {}
-
-/**
  * Timer Component
  *
  * Renders the main circular timer display with progress indicator.
@@ -42,7 +36,7 @@ interface TimerProps {}
  *
  * @returns React.JSX.Element
  */
-const Timer: React.FC<TimerProps> = (): React.JSX.Element => {
+const Timer: React.FC = (): React.JSX.Element => {
   // Get responsive dimensions
   const {width: screenWidth} = useWindowDimensions();
   const TIMER_SIZE = Math.min(screenWidth * 0.7, 280);

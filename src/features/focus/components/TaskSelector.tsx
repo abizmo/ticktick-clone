@@ -86,7 +86,7 @@ const TaskSelector: React.FC = (): React.JSX.Element => {
 
     // Add "No task" option at the beginning
     return [{task: null, listName: undefined}, ...taskItems];
-  }, [mockTasks, mockLists]);
+  }, []);
 
   /**
    * Get priority color for task
