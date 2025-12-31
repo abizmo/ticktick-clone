@@ -43,6 +43,10 @@ const FocusScreen: React.FC = (): React.JSX.Element => {
   // Load sessions when component mounts
   useEffect(() => {
     loadSessions();
+
+    // TODO: Add cleanup for async cancellation to prevent memory leaks
+    // when component unmounts before loadSessions completes.
+    // See GitHub issue for implementation in Phase 7.
   }, [loadSessions]);
 
   return (

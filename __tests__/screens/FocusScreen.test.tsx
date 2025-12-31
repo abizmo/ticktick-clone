@@ -19,22 +19,30 @@ jest.mock('../../src/features/focus/store/focusStore', () => ({
 
 // Mock all child components
 jest.mock('../../src/features/focus/components', () => {
-  const React = require('react');
+  const MockReact = require('react');
   const {Text} = require('react-native');
   return {
-    Timer: () => React.createElement(Text, {testID: 'timer'}, 'Timer'),
+    Timer: () => MockReact.createElement(Text, {testID: 'timer'}, 'Timer'),
     TimerControls: () =>
-      React.createElement(Text, {testID: 'timer-controls'}, 'TimerControls'),
+      MockReact.createElement(
+        Text,
+        {testID: 'timer-controls'},
+        'TimerControls',
+      ),
     TaskSelector: () =>
-      React.createElement(Text, {testID: 'task-selector'}, 'TaskSelector'),
+      MockReact.createElement(Text, {testID: 'task-selector'}, 'TaskSelector'),
     PomodoroProgress: () =>
-      React.createElement(
+      MockReact.createElement(
         Text,
         {testID: 'pomodoro-progress'},
         'PomodoroProgress',
       ),
     SessionHistory: () =>
-      React.createElement(Text, {testID: 'session-history'}, 'SessionHistory'),
+      MockReact.createElement(
+        Text,
+        {testID: 'session-history'},
+        'SessionHistory',
+      ),
   };
 });
 
