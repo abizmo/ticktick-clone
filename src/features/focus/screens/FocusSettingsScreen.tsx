@@ -87,7 +87,6 @@ const SettingInput: React.FC<SettingInputProps> = ({
         returnKeyType="done"
         accessibilityLabel={accessibilityLabel}
         accessibilityHint={accessibilityHint}
-        accessibilityRole="none"
       />
       <Text style={[styles.hintText, hasError && styles.hintTextError]}>
         {hint}
