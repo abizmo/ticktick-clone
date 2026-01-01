@@ -5,9 +5,9 @@ import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import Icon from 'react-native-vector-icons/Ionicons';
 
 import ListsNavigator from './src/navigation/ListsNavigator';
+import SettingsNavigator from './src/navigation/SettingsNavigator';
 import FocusScreen from './src/features/focus/screens/FocusScreen';
 import CalendarScreen from './src/screens/CalendarScreen';
-import SettingsScreen from './src/screens/SettingsScreen';
 
 const Tab = createBottomTabNavigator();
 
@@ -39,7 +39,7 @@ function App(): React.JSX.Element {
           <Tab.Screen name="Lists" component={ListsNavigator} />
           <Tab.Screen name="Focus" component={FocusScreen} />
           <Tab.Screen name="Calendar" component={CalendarScreen} />
-          <Tab.Screen name="Settings" component={SettingsScreen} />
+          <Tab.Screen name="Settings" component={SettingsNavigator} />
         </Tab.Navigator>
       </NavigationContainer>
     </GestureHandlerRootView>
