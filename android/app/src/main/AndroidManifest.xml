@@ -37,12 +37,7 @@
         </intent-filter>
       </receiver>
       
-      <service
-        android:name="com.dieam.reactnativepushnotification.modules.RNPushNotificationListenerService"
-        android:exported="false" >
-        <intent-filter>
-          <action android:name="com.google.firebase.MESSAGING_EVENT" />
-        </intent-filter>
-      </service>
+      <!-- Local notifications only - Firebase service removed to avoid initialization error -->
+      <!-- If you need remote push notifications in the future, add Firebase and restore this service -->
     </application>
 </manifest>
