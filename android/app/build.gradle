@@ -57,4 +57,11 @@ dependencies {
     }
 }
 
+// Exclude Firebase from react-native-push-notification (we only use local notifications)
+configurations.all {
+    exclude group: 'com.google.firebase', module: 'firebase-messaging'
+    exclude group: 'com.google.firebase', module: 'firebase-core'
+    exclude group: 'com.google.firebase', module: 'firebase-iid'
+}
+
 apply from: file("../../node_modules/@react-native-community/cli-platform-android/native_modules.gradle"); applyNativeModulesAppBuildGradle(project)
