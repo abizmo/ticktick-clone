@@ -9,9 +9,18 @@ import SettingsNavigator from './src/navigation/SettingsNavigator';
 import FocusScreen from './src/features/focus/screens/FocusScreen';
 import CalendarScreen from './src/screens/CalendarScreen';
 
+// Phase 8: Initialize notification service
+import * as notificationService from './src/features/focus/services/notificationService';
+
 const Tab = createBottomTabNavigator();
 
 function App(): React.JSX.Element {
+  // Configure notification service on app start
+  React.useEffect(() => {
+    notificationService.configure();
+    console.log('[App] Notification service configured');
+  }, []);
+
   return (
     <GestureHandlerRootView style={{flex: 1}}>
       <NavigationContainer>
