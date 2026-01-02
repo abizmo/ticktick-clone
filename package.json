@@ -13,8 +13,8 @@
     "test:verbose": "jest --verbose"
   },
   "dependencies": {
+    "@notifee/react-native": "^9.1.8",
     "@react-native-async-storage/async-storage": "^2.2.0",
-    "@react-native-community/push-notification-ios": "^1.12.0",
     "@react-navigation/bottom-tabs": "^6.5.11",
     "@react-navigation/drawer": "^6.6.6",
     "@react-navigation/native": "^6.1.9",
@@ -23,7 +23,6 @@
     "react": "18.2.0",
     "react-native": "0.74.1",
     "react-native-gesture-handler": "^2.16.2",
-    "react-native-push-notification": "^8.1.1",
     "react-native-reanimated": "^3.10.1",
     "react-native-safe-area-context": "^4.14.1",
     "react-native-screens": "^3.37.0",

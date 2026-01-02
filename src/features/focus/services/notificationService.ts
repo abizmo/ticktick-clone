@@ -1,18 +1,18 @@
 /**
  * Notification Service
  *
- * Handles local notifications for the Focus feature.
+ * Handles local notifications for the Focus feature using Notifee.
  * Sends notifications when work intervals and breaks complete.
  *
  * Features:
  * - Request notification permissions
  * - Show local notifications
- * - Schedule notifications
  * - Cancel notifications
  * - Handle permission states
+ * - Android notification channels
  *
  * Platform Support:
- * - Android: API 33+ (requires POST_NOTIFICATIONS permission)
+ * - Android: API 21+ (no Firebase required)
  * - iOS: Requires user authorization
  *
  * Limitations:
@@ -23,9 +23,10 @@
  * @module notificationService
  */
 
-import PushNotification, {
-  PushNotificationPermissions,
-} from 'react-native-push-notification';
+import notifee, {
+  AndroidImportance,
+  AuthorizationStatus,
+} from '@notifee/react-native';
 import {Platform} from 'react-native';
 
 // ============================================================================
@@ -69,10 +70,15 @@ interface NotificationConfig {
   title: string;
   message: string;
   playSound?: boolean;
-  soundName?: string;
   vibrate?: boolean;
-  vibration?: number;
 }
+
+// ============================================================================
+// Constants
+// ============================================================================
+
+const CHANNEL_ID = 'focus-timer';
+const CHANNEL_NAME = 'Focus Timer';
 
 // ============================================================================
 // State
@@ -89,7 +95,7 @@ let permissionStatus: PermissionStatus = 'not-requested';
  * Configure the notification service
  *
  * Must be called once before using any notification functions.
- * Sets up notification channels (Android) and handlers.
+ * Sets up notification channels (Android).
  *
  * @example
  * ```typescript
@@ -99,64 +105,30 @@ let permissionStatus: PermissionStatus = 'not-requested';
  * notificationService.configure();
  * ```
  */
-export const configure = (): void => {
+export const configure = async (): Promise<void> => {
   if (isConfigured) {
     logger.log('[NotificationService] Already configured');
     return;
   }
 
-  PushNotification.configure({
-    // Called when a notification is opened or received in foreground
-    onNotification: notification => {
-      logger.log('[NotificationService] Notification received:', notification);
+  try {
+    // Create notification channel (Android only)
+    if (Platform.OS === 'android') {
+      await notifee.createChannel({
+        id: CHANNEL_ID,
+        name: CHANNEL_NAME,
+        importance: AndroidImportance.HIGH,
+        sound: 'default',
+        vibration: true,
+      });
+      logger.log('[NotificationService] Android channel created');
+    }
 
-      // Required on iOS only
-      if (Platform.OS === 'ios') {
-        notification.finish('UIBackgroundFetchResultNoData');
-      }
-    },
-
-    // Called when user grants/denies permissions (iOS)
-    onRegistrationError: err => {
-      logger.error('[NotificationService] Registration error:', err);
-    },
-
-    // IOS ONLY: Permissions object
-    permissions: {
-      alert: true,
-      badge: true,
-      sound: true,
-    },
-
-    // Should the initial notification be popped automatically (default: true)
-    popInitialNotification: true,
-
-    // Request permissions on app start (iOS only)
-    requestPermissions: false, // We'll request manually when user starts Focus
-  });
-
-  // Create notification channel (Android 8.0+)
-  if (Platform.OS === 'android') {
-    PushNotification.createChannel(
-      {
-        channelId: 'focus-timer', // Required
-        channelName: 'Focus Timer', // Required
-        channelDescription: 'Notifications for Focus timer intervals',
-        playSound: true,
-        soundName: 'default',
-        importance: 4, // High importance
-        vibrate: true,
-      },
-      created => {
-        if (created) {
-          logger.log('[NotificationService] Android channel created');
-        }
-      },
-    );
+    isConfigured = true;
+    logger.log('[NotificationService] Configured successfully');
+  } catch (error) {
+    logger.error('[NotificationService] Configuration error:', error);
   }
-
-  isConfigured = true;
-  logger.log('[NotificationService] Configured successfully');
 };
 
 // ============================================================================
@@ -185,33 +157,31 @@ export const configure = (): void => {
 export const requestPermissions = async (): Promise<boolean> => {
   // Ensure service is configured
   if (!isConfigured) {
-    configure();
+    await configure();
   }
 
-  return new Promise(resolve => {
-    PushNotification.requestPermissions((permissions: PushNotificationPermissions) => {
-      logger.log('[NotificationService] Permissions:', permissions);
+  try {
+    const settings = await notifee.requestPermission();
 
-      // Check if permissions were granted
-      // iOS: Check alert permission explicitly
-      // Android 13+ (API 33+): Requires explicit permission check
-      // Android <13: Permissions granted by default
-      const granted =
-        Platform.OS === 'ios'
-          ? permissions.alert === 1 || permissions.alert === true
-          : Platform.Version >= 33
-          ? permissions.alert === 1 || permissions.alert === true
-          : true;
+    logger.log('[NotificationService] Permission settings:', settings);
 
-      permissionStatus = granted ? 'granted' : 'denied';
+    // Check if permissions were granted
+    const granted =
+      settings.authorizationStatus === AuthorizationStatus.AUTHORIZED ||
+      settings.authorizationStatus === AuthorizationStatus.PROVISIONAL;
 
-      logger.log(
-        `[NotificationService] Permission ${granted ? 'granted' : 'denied'}`,
-      );
+    permissionStatus = granted ? 'granted' : 'denied';
 
-      resolve(granted);
-    });
-  });
+    logger.log(
+      `[NotificationService] Permission ${granted ? 'granted' : 'denied'}`,
+    );
+
+    return granted;
+  } catch (error) {
+    logger.error('[NotificationService] Permission request error:', error);
+    permissionStatus = 'denied';
+    return false;
+  }
 };
 
 /**
@@ -228,25 +198,26 @@ export const requestPermissions = async (): Promise<boolean> => {
 export const checkPermissions = async (): Promise<PermissionStatus> => {
   // Ensure service is configured
   if (!isConfigured) {
-    configure();
+    await configure();
   }
 
-  return new Promise(resolve => {
-    PushNotification.checkPermissions((permissions: PushNotificationPermissions) => {
-      logger.log('[NotificationService] Current permissions:', permissions);
+  try {
+    const settings = await notifee.getNotificationSettings();
 
-      // Determine status
-      if (Platform.OS === 'ios') {
-        const granted = permissions.alert === 1 || permissions.alert === true;
-        permissionStatus = granted ? 'granted' : 'denied';
-      } else {
-        // Android: assume granted unless explicitly denied
-        permissionStatus = 'granted';
-      }
+    logger.log('[NotificationService] Current settings:', settings);
 
-      resolve(permissionStatus);
-    });
-  });
+    // Determine status
+    const granted =
+      settings.authorizationStatus === AuthorizationStatus.AUTHORIZED ||
+      settings.authorizationStatus === AuthorizationStatus.PROVISIONAL;
+
+    permissionStatus = granted ? 'granted' : 'denied';
+
+    return permissionStatus;
+  } catch (error) {
+    logger.error('[NotificationService] Check permissions error:', error);
+    return 'denied';
+  }
 };
 
 /**
@@ -277,10 +248,12 @@ export const getPermissionStatus = (): PermissionStatus => {
  * });
  * ```
  */
-export const showLocalNotification = (config: NotificationConfig): void => {
+export const showLocalNotification = async (
+  config: NotificationConfig,
+): Promise<void> => {
   // Ensure service is configured
   if (!isConfigured) {
-    configure();
+    await configure();
   }
 
   // Check permission status
@@ -291,80 +264,31 @@ export const showLocalNotification = (config: NotificationConfig): void => {
     return;
   }
 
-  PushNotification.localNotification({
-    channelId: 'focus-timer', // Android only
-    title: config.title,
-    message: config.message,
-    playSound: config.playSound ?? true,
-    soundName: config.soundName ?? 'default',
-    vibrate: config.vibrate ?? true,
-    vibration: config.vibration ?? 300,
-    importance: 'high', // Android only
-    priority: 'high', // Android only
-  });
+  try {
+    await notifee.displayNotification({
+      title: config.title,
+      body: config.message,
+      android: {
+        channelId: CHANNEL_ID,
+        importance: AndroidImportance.HIGH,
+        sound: config.playSound !== false ? 'default' : undefined,
+        pressAction: {
+          id: 'default',
+        },
+      },
+      ios: {
+        sound: config.playSound !== false ? 'default' : undefined,
+      },
+    });
 
-  logger.log('[NotificationService] Notification sent:', config.title);
+    logger.log('[NotificationService] Notification sent:', config.title);
+  } catch (error) {
+    logger.error('[NotificationService] Show notification error:', error);
+  }
 };
 
 /**
- * Schedule a notification for later
- *
- * @param config - Notification configuration
- * @param delaySeconds - Delay in seconds before showing notification
- *
- * @example
- * ```typescript
- * // Schedule notification in 25 minutes
- * scheduleNotification(
- *   {
- *     title: 'Work interval complete',
- *     message: 'Time for a break!',
- *   },
- *   25 * 60
- * );
- * ```
- */
-export const scheduleNotification = (
-  config: NotificationConfig,
-  delaySeconds: number,
-): void => {
-  // Ensure service is configured
-  if (!isConfigured) {
-    configure();
-  }
-
-  // Check permission status
-  if (permissionStatus === 'denied') {
-    logger.warn(
-      '[NotificationService] Cannot schedule notification: permissions denied',
-    );
-    return;
-  }
-
-  const fireDate = new Date(Date.now() + delaySeconds * 1000);
-
-  PushNotification.localNotificationSchedule({
-    channelId: 'focus-timer', // Android only
-    title: config.title,
-    message: config.message,
-    date: fireDate,
-    playSound: config.playSound ?? true,
-    soundName: config.soundName ?? 'default',
-    vibrate: config.vibrate ?? true,
-    vibration: config.vibration ?? 300,
-    importance: 'high', // Android only
-    priority: 'high', // Android only
-    allowWhileIdle: true, // Android only - allow notification even in doze mode
-  });
-
-  logger.log(
-    `[NotificationService] Notification scheduled for ${fireDate.toLocaleTimeString()}:`,
-    config.title,
-  );
-};
-
-/**
- * Cancel all scheduled and displayed notifications
+ * Cancel all notifications
  *
  * @example
  * ```typescript
@@ -372,9 +296,13 @@ export const scheduleNotification = (
  * cancelAllNotifications();
  * ```
  */
-export const cancelAllNotifications = (): void => {
-  PushNotification.cancelAllLocalNotifications();
-  logger.log('[NotificationService] All notifications cancelled');
+export const cancelAllNotifications = async (): Promise<void> => {
+  try {
+    await notifee.cancelAllNotifications();
+    logger.log('[NotificationService] All notifications cancelled');
+  } catch (error) {
+    logger.error('[NotificationService] Cancel notifications error:', error);
+  }
 };
 
 // ============================================================================
@@ -392,8 +320,10 @@ export const cancelAllNotifications = (): void => {
  * showWorkCompleteNotification(5);
  * ```
  */
-export const showWorkCompleteNotification = (breakDuration: number): void => {
-  showLocalNotification({
+export const showWorkCompleteNotification = async (
+  breakDuration: number,
+): Promise<void> => {
+  await showLocalNotification({
     title: '¡Pomodoro completado! 🎉',
     message: `Tiempo de descanso (${breakDuration} min)`,
     playSound: true,
@@ -415,8 +345,10 @@ export const showWorkCompleteNotification = (breakDuration: number): void => {
  * showBreakCompleteNotification(true);
  * ```
  */
-export const showBreakCompleteNotification = (isLongBreak: boolean): void => {
-  showLocalNotification({
+export const showBreakCompleteNotification = async (
+  isLongBreak: boolean,
+): Promise<void> => {
+  await showLocalNotification({
     title: isLongBreak ? 'Descanso largo terminado' : 'Descanso terminado',
     message: 'Listo para el siguiente pomodoro 💪',
     playSound: true,
@@ -433,7 +365,7 @@ export const showBreakCompleteNotification = (isLongBreak: boolean): void => {
  *
  * Call this when unmounting the Focus feature or on app shutdown.
  */
-export const cleanup = (): void => {
-  cancelAllNotifications();
+export const cleanup = async (): Promise<void> => {
+  await cancelAllNotifications();
   logger.log('[NotificationService] Cleanup complete');
 };
