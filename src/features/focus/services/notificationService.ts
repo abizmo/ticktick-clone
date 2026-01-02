@@ -29,6 +29,31 @@ import PushNotification, {
 import {Platform} from 'react-native';
 
 // ============================================================================
+// Logger Utility
+// ============================================================================
+
+/**
+ * Development-only logger
+ * Prevents console.log statements in production builds
+ */
+const logger = {
+  log: (...args: any[]): void => {
+    if (__DEV__) {
+      console.log(...args);
+    }
+  },
+  warn: (...args: any[]): void => {
+    if (__DEV__) {
+      console.warn(...args);
+    }
+  },
+  error: (...args: any[]): void => {
+    // Always log errors, even in production
+    console.error(...args);
+  },
+};
+
+// ============================================================================
 // Types
 // ============================================================================
 
@@ -76,14 +101,14 @@ let permissionStatus: PermissionStatus = 'not-requested';
  */
 export const configure = (): void => {
   if (isConfigured) {
-    console.log('[NotificationService] Already configured');
+    logger.log('[NotificationService] Already configured');
     return;
   }
 
   PushNotification.configure({
     // Called when a notification is opened or received in foreground
     onNotification: notification => {
-      console.log('[NotificationService] Notification received:', notification);
+      logger.log('[NotificationService] Notification received:', notification);
 
       // Required on iOS only
       if (Platform.OS === 'ios') {
@@ -93,7 +118,7 @@ export const configure = (): void => {
 
     // Called when user grants/denies permissions (iOS)
     onRegistrationError: err => {
-      console.error('[NotificationService] Registration error:', err);
+      logger.error('[NotificationService] Registration error:', err);
     },
 
     // IOS ONLY: Permissions object
@@ -124,14 +149,14 @@ export const configure = (): void => {
       },
       created => {
         if (created) {
-          console.log('[NotificationService] Android channel created');
+          logger.log('[NotificationService] Android channel created');
         }
       },
     );
   }
 
   isConfigured = true;
-  console.log('[NotificationService] Configured successfully');
+  logger.log('[NotificationService] Configured successfully');
 };
 
 // ============================================================================
@@ -165,17 +190,22 @@ export const requestPermissions = async (): Promise<boolean> => {
 
   return new Promise(resolve => {
     PushNotification.requestPermissions((permissions: PushNotificationPermissions) => {
-      console.log('[NotificationService] Permissions:', permissions);
+      logger.log('[NotificationService] Permissions:', permissions);
 
       // Check if permissions were granted
+      // iOS: Check alert permission explicitly
+      // Android 13+ (API 33+): Requires explicit permission check
+      // Android <13: Permissions granted by default
       const granted =
         Platform.OS === 'ios'
           ? permissions.alert === 1 || permissions.alert === true
-          : true; // Android grants by default (unless user explicitly denies in settings)
+          : Platform.Version >= 33
+          ? permissions.alert === 1 || permissions.alert === true
+          : true;
 
       permissionStatus = granted ? 'granted' : 'denied';
 
-      console.log(
+      logger.log(
         `[NotificationService] Permission ${granted ? 'granted' : 'denied'}`,
       );
 
@@ -203,7 +233,7 @@ export const checkPermissions = async (): Promise<PermissionStatus> => {
 
   return new Promise(resolve => {
     PushNotification.checkPermissions((permissions: PushNotificationPermissions) => {
-      console.log('[NotificationService] Current permissions:', permissions);
+      logger.log('[NotificationService] Current permissions:', permissions);
 
       // Determine status
       if (Platform.OS === 'ios') {
@@ -255,7 +285,7 @@ export const showLocalNotification = (config: NotificationConfig): void => {
 
   // Check permission status
   if (permissionStatus === 'denied') {
-    console.warn(
+    logger.warn(
       '[NotificationService] Cannot show notification: permissions denied',
     );
     return;
@@ -273,7 +303,7 @@ export const showLocalNotification = (config: NotificationConfig): void => {
     priority: 'high', // Android only
   });
 
-  console.log('[NotificationService] Notification sent:', config.title);
+  logger.log('[NotificationService] Notification sent:', config.title);
 };
 
 /**
@@ -305,7 +335,7 @@ export const scheduleNotification = (
 
   // Check permission status
   if (permissionStatus === 'denied') {
-    console.warn(
+    logger.warn(
       '[NotificationService] Cannot schedule notification: permissions denied',
     );
     return;
@@ -327,7 +357,7 @@ export const scheduleNotification = (
     allowWhileIdle: true, // Android only - allow notification even in doze mode
   });
 
-  console.log(
+  logger.log(
     `[NotificationService] Notification scheduled for ${fireDate.toLocaleTimeString()}:`,
     config.title,
   );
@@ -344,7 +374,7 @@ export const scheduleNotification = (
  */
 export const cancelAllNotifications = (): void => {
   PushNotification.cancelAllLocalNotifications();
-  console.log('[NotificationService] All notifications cancelled');
+  logger.log('[NotificationService] All notifications cancelled');
 };
 
 // ============================================================================
@@ -405,5 +435,5 @@ export const showBreakCompleteNotification = (isLongBreak: boolean): void => {
  */
 export const cleanup = (): void => {
   cancelAllNotifications();
-  console.log('[NotificationService] Cleanup complete');
+  logger.log('[NotificationService] Cleanup complete');
 };
