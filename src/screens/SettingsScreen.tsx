@@ -10,7 +10,13 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 
-function SettingsScreen() {
+interface SettingsScreenProps {
+  navigation: {
+    navigate: (screen: string) => void;
+  };
+}
+
+function SettingsScreen({navigation}: SettingsScreenProps) {
   const [notificationsEnabled, setNotificationsEnabled] = React.useState(true);
   const [soundEnabled, setSoundEnabled] = React.useState(false);
   const [darkModeEnabled, setDarkModeEnabled] = React.useState(false);
@@ -85,6 +91,15 @@ function SettingsScreen() {
             hasToggle={true}
             toggleValue={soundEnabled}
             onToggle={setSoundEnabled}
+          />
+        </SettingSection>
+
+        <SettingSection title="Focus">
+          <SettingItem
+            icon="flash-outline"
+            title="Configuración de Pomodoro"
+            subtitle="Personaliza duraciones y preferencias"
+            onPress={() => navigation.navigate('FocusSettings')}
           />
         </SettingSection>
 
