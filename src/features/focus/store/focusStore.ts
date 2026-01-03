@@ -34,6 +34,7 @@ import type {
 import {getTimerService, type TimerService} from '../services/timerService';
 import * as sessionService from '../services/sessionService';
 import * as storageService from '../services/storageService';
+import * as notificationService from '../services/notificationService';
 
 // Utils
 import * as pomodoroCalculator from '../utils/pomodoroCalculator';
@@ -98,6 +99,7 @@ export const useFocusStore = create<FocusStoreState>()(
        *
        * Creates a new session, initializes the timer, and sets up event listeners.
        * Fixed: Now saves session immediately to AsyncStorage for crash recovery.
+       * Phase 8: Request notification permissions on first start.
        *
        * @param taskId - Optional task ID to associate with the session
        */
@@ -111,6 +113,20 @@ export const useFocusStore = create<FocusStoreState>()(
         }
 
         try {
+          // Request notification permissions (first time only)
+          // This is non-blocking - if denied, notifications just won't show
+          const permissionStatus = notificationService.getPermissionStatus();
+          if (permissionStatus === 'not-requested') {
+            console.log('[FocusStore] Requesting notification permissions...');
+            const granted = await notificationService.requestPermissions();
+            if (!granted) {
+              console.warn(
+                '[FocusStore] Notification permissions denied by user',
+              );
+              // Continue anyway - user can still use Focus without notifications
+            }
+          }
+
           // Get current settings
           const {settings, timerState} = state;
 
@@ -291,6 +307,7 @@ export const useFocusStore = create<FocusStoreState>()(
        *
        * Stops the timer, completes or interrupts the session,
        * saves to storage, and resets state.
+       * Phase 8: Cancel any pending notifications.
        *
        * Fixed: Race condition prevention by immediately clearing currentSession
        */
@@ -313,6 +330,9 @@ export const useFocusStore = create<FocusStoreState>()(
           // Stop timer service
           const timer = getTimerService();
           timer.stop();
+
+          // Cancel any pending notifications
+          await notificationService.cancelAllNotifications();
 
           // Determine if session was completed or interrupted
           const isCompleted = timerState.timeRemaining <= 0;
@@ -727,6 +747,26 @@ const setupTimerListeners = (
     } else if (timerState.currentPhase === 'longBreak') {
       // Reset count after long break (fix from reviewer)
       newPomodorosCompleted = 0;
+    }
+
+    // ✅ PHASE 8: Send notification based on completed phase
+    if (isWorkPhase) {
+      // Work phase completed - notify about break
+      const nextPhase = pomodoroCalculator.getNextPhase(
+        timerState.currentPhase,
+        newPomodorosCompleted,
+        settings,
+      );
+      const breakDuration =
+        nextPhase === 'longBreak'
+          ? settings.pomoLongBreak
+          : settings.pomoShortBreak;
+
+      notificationService.showWorkCompleteNotification(breakDuration);
+    } else {
+      // Break completed - notify to start work
+      const isLongBreak = timerState.currentPhase === 'longBreak';
+      notificationService.showBreakCompleteNotification(isLongBreak);
     }
 
     // INTERMEDIATE PERSISTENCE: Save progress after work phase completion

@@ -154,9 +154,9 @@ describe('App', () => {
 
   describe('Return Type', () => {
     it('should return React.JSX.Element', () => {
-      const app = App();
-      expect(app).toBeTruthy();
-      expect(typeof app).toBe('object');
+      const {UNSAFE_root} = render(<App />);
+      expect(UNSAFE_root).toBeTruthy();
+      expect(typeof UNSAFE_root).toBe('object');
     });
   });
 

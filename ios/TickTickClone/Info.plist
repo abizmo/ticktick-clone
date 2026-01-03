@@ -48,5 +48,9 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
+	<!-- UIBackgroundModes removed: Local notifications don't require background modes -->
+	<!-- If remote push notifications are needed in future, add: -->
+	<!-- <key>UIBackgroundModes</key> -->
+	<!-- <array><string>remote-notification</string></array> -->
 </dict>
 </plist>
