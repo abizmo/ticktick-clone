@@ -18,7 +18,14 @@ function App(): React.JSX.Element {
   // Configure notification service on app start
   React.useEffect(() => {
     notificationService.configure();
-    console.log('[App] Notification service configured');
+    if (__DEV__) {
+      console.log('[App] Notification service configured');
+    }
+
+    // Cleanup on unmount
+    return () => {
+      notificationService.cleanup();
+    };
   }, []);
 
   return (

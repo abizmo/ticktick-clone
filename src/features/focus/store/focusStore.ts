@@ -332,7 +332,7 @@ export const useFocusStore = create<FocusStoreState>()(
           timer.stop();
 
           // Cancel any pending notifications
-          notificationService.cancelAllNotifications();
+          await notificationService.cancelAllNotifications();
 
           // Determine if session was completed or interrupted
           const isCompleted = timerState.timeRemaining <= 0;

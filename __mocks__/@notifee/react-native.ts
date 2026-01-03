@@ -21,7 +21,6 @@ export enum AndroidImportance {
 
 // Mock state
 let mockPermissionStatus = AuthorizationStatus.AUTHORIZED;
-let mockChannelCreated = false;
 const mockNotifications: any[] = [];
 
 // Mock implementation
@@ -38,7 +37,6 @@ const notifee = {
 
   // Create channel (Android)
   createChannel: jest.fn(async (channel: any) => {
-    mockChannelCreated = true;
     return channel.id;
   }),
 
@@ -73,7 +71,6 @@ const notifee = {
 
   __reset: () => {
     mockPermissionStatus = AuthorizationStatus.AUTHORIZED;
-    mockChannelCreated = false;
     mockNotifications.length = 0;
     jest.clearAllMocks();
   },
