@@ -2,7 +2,8 @@
  * FocusScreen Tests
  *
  * Comprehensive test suite for the FocusScreen component.
- * Tests rendering, store integration, accessibility, and layout.
+ * Tests rendering, store integration, accessibility, layout,
+ * and task pre-selection via navigation params.
  *
  * @module FocusScreenTests
  */
@@ -11,6 +12,7 @@ import React from 'react';
 import {render} from '@testing-library/react-native';
 import FocusScreen from '../../src/features/focus/screens/FocusScreen';
 import {useFocusStore} from '../../src/features/focus/store/focusStore';
+import {mockTasks} from '../../src/data/mockData';
 
 // Mock the Zustand store
 jest.mock('../../src/features/focus/store/focusStore', () => ({
@@ -48,12 +50,14 @@ jest.mock('../../src/features/focus/components', () => {
 
 describe('FocusScreen', () => {
   const mockLoadSessions = jest.fn();
+  const mockSelectTask = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
     (useFocusStore as unknown as jest.Mock).mockImplementation(selector =>
       selector({
         loadSessions: mockLoadSessions,
+        selectTask: mockSelectTask,
       }),
     );
   });
@@ -233,6 +237,7 @@ describe('FocusScreen', () => {
       (useFocusStore as unknown as jest.Mock).mockImplementation(selector =>
         selector({
           loadSessions: mockLoadSessionsWithError,
+          selectTask: mockSelectTask,
         }),
       );
 
@@ -245,6 +250,7 @@ describe('FocusScreen', () => {
       (useFocusStore as unknown as jest.Mock).mockImplementation(selector =>
         selector({
           loadSessions: mockValidLoadSessions,
+          selectTask: mockSelectTask,
         }),
       );
 
@@ -296,6 +302,7 @@ describe('FocusScreen', () => {
       const mockSelector = jest.fn(selector =>
         selector({
           loadSessions: mockLoadSessions,
+          selectTask: mockSelectTask,
         }),
       );
 
@@ -362,6 +369,423 @@ describe('FocusScreen', () => {
 
     it('should be a functional component', () => {
       expect(typeof FocusScreen).toBe('function');
+    });
+  });
+
+  describe('Task Pre-Selection', () => {
+    it('should auto-select task when taskId is provided via route params', () => {
+      const task = mockTasks.find(t => t.id === '1');
+      const route = {
+        params: {
+          taskId: '1',
+          taskTitle: 'Review project proposal',
+        },
+      };
+
+      render(<FocusScreen route={route} />);
+
+      expect(mockSelectTask).toHaveBeenCalledWith(task);
+    });
+
+    it('should call selectTask with correct task object', () => {
+      const task = mockTasks.find(t => t.id === '4');
+      const route = {
+        params: {
+          taskId: '4',
+          taskTitle: 'Finish weekly report',
+        },
+      };
+
+      render(<FocusScreen route={route} />);
+
+      expect(mockSelectTask).toHaveBeenCalledWith(task);
+      expect(mockSelectTask).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: '4',
+          title: 'Finish weekly report',
+          listId: '2',
+        }),
+      );
+    });
+
+    it('should handle invalid taskId gracefully (task not found)', () => {
+      const route = {
+        params: {
+          taskId: '999',
+          taskTitle: 'Non-existent task',
+        },
+      };
+
+      expect(() => render(<FocusScreen route={route} />)).not.toThrow();
+      expect(mockSelectTask).not.toHaveBeenCalled();
+    });
+
+    it('should work without taskId (normal flow)', () => {
+      render(<FocusScreen />);
+
+      expect(mockLoadSessions).toHaveBeenCalled();
+      expect(mockSelectTask).not.toHaveBeenCalled();
+    });
+
+    it('should not call selectTask when route is undefined', () => {
+      render(<FocusScreen route={undefined} />);
+
+      expect(mockLoadSessions).toHaveBeenCalled();
+      expect(mockSelectTask).not.toHaveBeenCalled();
+    });
+
+    it('should not call selectTask when route.params is undefined', () => {
+      const route = {
+        params: undefined,
+      };
+
+      render(<FocusScreen route={route} />);
+
+      expect(mockLoadSessions).toHaveBeenCalled();
+      expect(mockSelectTask).not.toHaveBeenCalled();
+    });
+
+    it('should not call selectTask when taskId is undefined', () => {
+      const route = {
+        params: {
+          taskId: undefined,
+          taskTitle: undefined,
+        },
+      };
+
+      render(<FocusScreen route={route} />);
+
+      expect(mockLoadSessions).toHaveBeenCalled();
+      expect(mockSelectTask).not.toHaveBeenCalled();
+    });
+
+    it('should handle multiple tasks correctly', () => {
+      const tasks = [
+        {taskId: '1', taskTitle: 'Review project proposal'},
+        {taskId: '2', taskTitle: 'Buy groceries'},
+        {taskId: '5', taskTitle: 'Call mom'},
+      ];
+
+      tasks.forEach(({taskId, taskTitle}) => {
+        jest.clearAllMocks();
+
+        const route = {
+          params: {taskId, taskTitle},
+        };
+
+        render(<FocusScreen route={route} />);
+
+        const expectedTask = mockTasks.find(t => t.id === taskId);
+        expect(mockSelectTask).toHaveBeenCalledWith(expectedTask);
+      });
+    });
+
+    it('should only call selectTask once per mount', () => {
+      const route = {
+        params: {
+          taskId: '1',
+          taskTitle: 'Review project proposal',
+        },
+      };
+
+      render(<FocusScreen route={route} />);
+
+      expect(mockSelectTask).toHaveBeenCalledTimes(1);
+    });
+
+    it('should call selectTask with task from mockTasks', () => {
+      const route = {
+        params: {
+          taskId: '3',
+          taskTitle: 'Schedule dentist appointment',
+        },
+      };
+
+      render(<FocusScreen route={route} />);
+
+      const task = mockTasks.find(t => t.id === '3');
+      expect(mockSelectTask).toHaveBeenCalledWith(task);
+      expect(mockSelectTask).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: '3',
+          title: 'Schedule dentist appointment',
+          completed: true,
+          priority: 'low',
+        }),
+      );
+    });
+
+    it('should handle task pre-selection before loadSessions completes', () => {
+      const route = {
+        params: {
+          taskId: '1',
+          taskTitle: 'Review project proposal',
+        },
+      };
+
+      render(<FocusScreen route={route} />);
+
+      expect(mockLoadSessions).toHaveBeenCalled();
+      expect(mockSelectTask).toHaveBeenCalled();
+    });
+
+    it('should re-select task when taskId changes', () => {
+      const route1 = {
+        params: {
+          taskId: '1',
+          taskTitle: 'Review project proposal',
+        },
+      };
+
+      const {rerender} = render(<FocusScreen route={route1} />);
+
+      expect(mockSelectTask).toHaveBeenCalledTimes(1);
+
+      const route2 = {
+        params: {
+          taskId: '2',
+          taskTitle: 'Buy groceries',
+        },
+      };
+
+      rerender(<FocusScreen route={route2} />);
+
+      expect(mockSelectTask).toHaveBeenCalledTimes(2);
+
+      const task2 = mockTasks.find(t => t.id === '2');
+      expect(mockSelectTask).toHaveBeenLastCalledWith(task2);
+    });
+
+    it('should not re-select task when taskId remains the same', () => {
+      const route = {
+        params: {
+          taskId: '1',
+          taskTitle: 'Review project proposal',
+        },
+      };
+
+      const {rerender} = render(<FocusScreen route={route} />);
+
+      expect(mockSelectTask).toHaveBeenCalledTimes(1);
+
+      rerender(<FocusScreen route={route} />);
+
+      // Should still be 1 because taskId hasn't changed
+      expect(mockSelectTask).toHaveBeenCalledTimes(1);
+    });
+
+    it('should handle completed tasks in pre-selection', () => {
+      const completedTask = mockTasks.find(t => t.completed);
+
+      if (completedTask) {
+        const route = {
+          params: {
+            taskId: completedTask.id,
+            taskTitle: completedTask.title,
+          },
+        };
+
+        render(<FocusScreen route={route} />);
+
+        expect(mockSelectTask).toHaveBeenCalledWith(completedTask);
+      }
+    });
+
+    it('should handle tasks with different priorities', () => {
+      const highPriorityTask = mockTasks.find(t => t.priority === 'high');
+      const lowPriorityTask = mockTasks.find(t => t.priority === 'low');
+
+      if (highPriorityTask) {
+        jest.clearAllMocks();
+        const route1 = {
+          params: {
+            taskId: highPriorityTask.id,
+            taskTitle: highPriorityTask.title,
+          },
+        };
+
+        render(<FocusScreen route={route1} />);
+        expect(mockSelectTask).toHaveBeenCalledWith(highPriorityTask);
+      }
+
+      if (lowPriorityTask) {
+        jest.clearAllMocks();
+        const route2 = {
+          params: {
+            taskId: lowPriorityTask.id,
+            taskTitle: lowPriorityTask.title,
+          },
+        };
+
+        render(<FocusScreen route={route2} />);
+        expect(mockSelectTask).toHaveBeenCalledWith(lowPriorityTask);
+      }
+    });
+
+    it('should handle tasks from different lists', () => {
+      const workTask = mockTasks.find(t => t.listId === '2');
+      const personalTask = mockTasks.find(t => t.listId === '3');
+
+      if (workTask) {
+        jest.clearAllMocks();
+        const route1 = {
+          params: {
+            taskId: workTask.id,
+            taskTitle: workTask.title,
+          },
+        };
+
+        render(<FocusScreen route={route1} />);
+        expect(mockSelectTask).toHaveBeenCalledWith(workTask);
+      }
+
+      if (personalTask) {
+        jest.clearAllMocks();
+        const route2 = {
+          params: {
+            taskId: personalTask.id,
+            taskTitle: personalTask.title,
+          },
+        };
+
+        render(<FocusScreen route={route2} />);
+        expect(mockSelectTask).toHaveBeenCalledWith(personalTask);
+      }
+    });
+  });
+
+  describe('Console Logging (DEV mode)', () => {
+    const originalDev = __DEV__;
+    let consoleLogSpy: jest.SpyInstance;
+
+    beforeEach(() => {
+      consoleLogSpy = jest.spyOn(console, 'log').mockImplementation();
+    });
+
+    afterEach(() => {
+      consoleLogSpy.mockRestore();
+      (global as any).__DEV__ = originalDev;
+    });
+
+    it('should log pre-selected task title in __DEV__ mode', () => {
+      (global as any).__DEV__ = true;
+
+      const route = {
+        params: {
+          taskId: '1',
+          taskTitle: 'Review project proposal',
+        },
+      };
+
+      render(<FocusScreen route={route} />);
+
+      expect(consoleLogSpy).toHaveBeenCalledWith(
+        '[FocusScreen] Pre-selected task:',
+        'Review project proposal',
+      );
+    });
+
+    it('should not log when task is not found', () => {
+      (global as any).__DEV__ = true;
+
+      const route = {
+        params: {
+          taskId: '999',
+          taskTitle: 'Non-existent task',
+        },
+      };
+
+      render(<FocusScreen route={route} />);
+
+      expect(consoleLogSpy).not.toHaveBeenCalledWith(
+        '[FocusScreen] Pre-selected task:',
+        expect.anything(),
+      );
+    });
+
+    it('should not log when taskId is not provided', () => {
+      (global as any).__DEV__ = true;
+
+      render(<FocusScreen />);
+
+      expect(consoleLogSpy).not.toHaveBeenCalledWith(
+        '[FocusScreen] Pre-selected task:',
+        expect.anything(),
+      );
+    });
+
+    it('should not crash if task not found', () => {
+      const route = {
+        params: {
+          taskId: '999',
+          taskTitle: 'Non-existent task',
+        },
+      };
+
+      expect(() => render(<FocusScreen route={route} />)).not.toThrow();
+    });
+
+    it('should handle null task gracefully', () => {
+      const route = {
+        params: {
+          taskId: null,
+          taskTitle: null,
+        },
+      };
+
+      expect(() => render(<FocusScreen route={route} />)).not.toThrow();
+      expect(mockSelectTask).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Integration with Navigation', () => {
+    it('should work with navigation params from TaskListScreen', () => {
+      const route = {
+        params: {
+          taskId: '1',
+          taskTitle: 'Review project proposal',
+        },
+      };
+
+      render(<FocusScreen route={route} />);
+
+      const task = mockTasks.find(t => t.id === '1');
+      expect(mockSelectTask).toHaveBeenCalledWith(task);
+      expect(mockLoadSessions).toHaveBeenCalled();
+    });
+
+    it('should maintain normal functionality without navigation params', () => {
+      render(<FocusScreen />);
+
+      expect(mockLoadSessions).toHaveBeenCalled();
+      expect(mockSelectTask).not.toHaveBeenCalled();
+      expect(() => render(<FocusScreen />)).not.toThrow();
+    });
+
+    it('should handle partial route params', () => {
+      const route = {
+        params: {
+          taskId: '1',
+        },
+      };
+
+      render(<FocusScreen route={route} />);
+
+      const task = mockTasks.find(t => t.id === '1');
+      expect(mockSelectTask).toHaveBeenCalledWith(task);
+    });
+
+    it('should ignore taskTitle if taskId is not found', () => {
+      const route = {
+        params: {
+          taskId: '999',
+          taskTitle: 'This title should be ignored',
+        },
+      };
+
+      render(<FocusScreen route={route} />);
+
+      expect(mockSelectTask).not.toHaveBeenCalled();
     });
   });
 });

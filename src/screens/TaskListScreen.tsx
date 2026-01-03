@@ -17,9 +17,15 @@ interface TaskListScreenProps {
       listName: string;
     };
   };
+  navigation: any;
 }
 
-const TaskItem = ({task}: {task: Task}) => {
+interface TaskItemProps {
+  task: Task;
+  onStartFocus?: (task: Task) => void;
+}
+
+const TaskItem = ({task, onStartFocus}: TaskItemProps) => {
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case 'high':
@@ -43,6 +49,10 @@ const TaskItem = ({task}: {task: Task}) => {
     }).format(date);
   };
 
+  const handleFocusPress = () => {
+    onStartFocus?.(task);
+  };
+
   return (
     <TouchableOpacity style={styles.taskItem}>
       <TouchableOpacity style={styles.checkbox}>
@@ -54,10 +64,23 @@ const TaskItem = ({task}: {task: Task}) => {
       </TouchableOpacity>
 
       <View style={styles.taskContent}>
-        <Text
-          style={[styles.taskTitle, task.completed && styles.completedTask]}>
-          {task.title}
-        </Text>
+        <View style={styles.taskHeader}>
+          <Text
+            style={[styles.taskTitle, task.completed && styles.completedTask]}>
+            {task.title}
+          </Text>
+          {!task.completed && onStartFocus && (
+            <TouchableOpacity
+              style={styles.focusButton}
+              onPress={handleFocusPress}
+              accessible={true}
+              accessibilityLabel={`Start Focus session for ${task.title}`}
+              accessibilityRole="button"
+              accessibilityHint="Starts a Pomodoro timer session for this task">
+              <Icon name="timer-outline" size={24} color="#007AFF" />
+            </TouchableOpacity>
+          )}
+        </View>
         {task.description && (
           <Text style={styles.taskDescription}>{task.description}</Text>
         )}
@@ -83,12 +106,20 @@ const TaskItem = ({task}: {task: Task}) => {
   );
 };
 
-function TaskListScreen({route}: TaskListScreenProps) {
+function TaskListScreen({route, navigation}: TaskListScreenProps) {
   const {listId, listName} = route.params;
 
   const filteredTasks = mockTasks.filter(task => task.listId === listId);
   const completedTasks = filteredTasks.filter(task => task.completed);
   const pendingTasks = filteredTasks.filter(task => !task.completed);
+
+  const handleStartFocus = (task: Task) => {
+    // Navigate to Focus tab with task pre-selected
+    navigation.navigate('Focus', {
+      taskId: task.id,
+      taskTitle: task.title,
+    });
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -102,7 +133,9 @@ function TaskListScreen({route}: TaskListScreenProps) {
       <FlatList
         data={filteredTasks}
         keyExtractor={item => item.id}
-        renderItem={({item}) => <TaskItem task={item} />}
+        renderItem={({item}) => (
+          <TaskItem task={item} onStartFocus={handleStartFocus} />
+        )}
         contentContainerStyle={styles.listContainer}
         showsVerticalScrollIndicator={false}
       />
@@ -160,11 +193,26 @@ const styles = StyleSheet.create({
   taskContent: {
     flex: 1,
   },
+  taskHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 4,
+  },
   taskTitle: {
     fontSize: 16,
     fontWeight: '500',
     color: '#333',
-    marginBottom: 4,
+    flex: 1,
+    marginRight: 8,
+  },
+  focusButton: {
+    width: 44,
+    height: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 22,
+    backgroundColor: 'rgba(0, 122, 255, 0.1)',
   },
   completedTask: {
     textDecorationLine: 'line-through',

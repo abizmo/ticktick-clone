@@ -16,6 +16,7 @@
 import React, {useEffect} from 'react';
 import {View, Text, ScrollView, StyleSheet, SafeAreaView} from 'react-native';
 import {useFocusStore} from '../store/focusStore';
+import {mockTasks} from '../../../data/mockData';
 import {
   Timer,
   TimerControls,
@@ -23,6 +24,18 @@ import {
   PomodoroProgress,
   SessionHistory,
 } from '../components';
+
+/**
+ * Props for FocusScreen
+ */
+interface FocusScreenProps {
+  route?: {
+    params?: {
+      taskId?: string;
+      taskTitle?: string;
+    };
+  };
+}
 
 /**
  * FocusScreen Component
@@ -34,20 +47,39 @@ import {
  * Integrates with Zustand store to load sessions on mount and
  * provides a centralized location for all Focus feature functionality.
  *
+ * Supports pre-selecting a task when navigated from TaskListScreen
+ * via the taskId route parameter.
+ *
+ * @param {FocusScreenProps} props - Component props including optional route params
  * @returns {React.JSX.Element} The rendered FocusScreen component
  */
-const FocusScreen: React.FC = (): React.JSX.Element => {
-  // Get loadSessions action from store
+const FocusScreen: React.FC<FocusScreenProps> = ({
+  route,
+}): React.JSX.Element => {
+  // Get actions from store
   const loadSessions = useFocusStore(state => state.loadSessions);
+  const selectTask = useFocusStore(state => state.selectTask);
 
-  // Load sessions when component mounts
+  // Load sessions and handle task pre-selection when component mounts
   useEffect(() => {
     loadSessions();
+
+    // Pre-select task if taskId is provided via navigation
+    const taskId = route?.params?.taskId;
+    if (taskId) {
+      const task = mockTasks.find(t => t.id === taskId);
+      if (task) {
+        selectTask(task);
+        if (__DEV__) {
+          console.log('[FocusScreen] Pre-selected task:', task.title);
+        }
+      }
+    }
 
     // TODO: Add cleanup for async cancellation to prevent memory leaks
     // when component unmounts before loadSessions completes.
     // See GitHub issue for implementation in Phase 7.
-  }, [loadSessions]);
+  }, [loadSessions, selectTask, route?.params?.taskId]);
 
   return (
     <SafeAreaView style={styles.container}>
