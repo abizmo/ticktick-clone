@@ -27,7 +27,7 @@ import {
   getSessionsForTask,
   calculateCompletionRate,
 } from '../../../../src/features/focus/services/sessionService';
-import {FocusSession, FocusMode} from '../../../../src/features/focus/types/focus.types';
+import {FocusSession} from '../../../../src/features/focus/types/focus.types';
 
 // ============================================================================
 // Test Helpers
@@ -107,7 +107,8 @@ describe('sessionService', () => {
     });
 
     it('should generate unique session IDs', () => {
-      jest.spyOn(Math, 'random')
+      jest
+        .spyOn(Math, 'random')
         .mockReturnValueOnce(0.111111111)
         .mockReturnValueOnce(0.222222222);
 

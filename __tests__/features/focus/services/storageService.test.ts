@@ -18,14 +18,20 @@ import {
   clearAllFocusData,
   getStorageStats,
 } from '../../../../src/features/focus/services/storageService';
-import {FocusSettings, FocusSession, StorageKeys} from '../../../../src/features/focus/types/focus.types';
+import {
+  FocusSettings,
+  FocusSession,
+  StorageKeys,
+} from '../../../../src/features/focus/types/focus.types';
 import {DEFAULT_FOCUS_SETTINGS} from '../../../../src/features/focus/constants/defaults';
 
 // ============================================================================
 // Test Helpers
 // ============================================================================
 
-const createMockSettings = (overrides?: Partial<FocusSettings>): FocusSettings => ({
+const createMockSettings = (
+  overrides?: Partial<FocusSettings>,
+): FocusSettings => ({
   pomoWorkDuration: 25,
   pomoShortBreak: 5,
   pomoLongBreak: 15,
@@ -108,10 +114,12 @@ describe('storageService', () => {
       (AsyncStorage.setItem as jest.Mock).mockRejectedValueOnce(error);
 
       await expect(saveFocusSettings(settings)).rejects.toThrow();
+
+      // Logger format: [timestamp] [ERROR] [component] [action] message
       expect(consoleErrorSpy).toHaveBeenCalledWith(
-        'Error saving Focus settings:',
-        error,
+        expect.stringContaining('[ERROR]'),
       );
+      expect(consoleErrorSpy).toHaveBeenCalledWith('Error details:', error);
     });
   });
 
@@ -165,10 +173,11 @@ describe('storageService', () => {
 
       await loadFocusSettings();
 
+      // Logger format: [timestamp] [ERROR] [component] [action] message
       expect(consoleErrorSpy).toHaveBeenCalledWith(
-        'Error loading Focus settings:',
-        error,
+        expect.stringContaining('[ERROR]'),
       );
+      expect(consoleErrorSpy).toHaveBeenCalledWith('Error details:', error);
     });
   });
 
@@ -229,10 +238,12 @@ describe('storageService', () => {
       (AsyncStorage.setItem as jest.Mock).mockRejectedValueOnce(error);
 
       await expect(saveFocusSession(session)).rejects.toThrow();
+
+      // Logger format: [timestamp] [ERROR] [component] [action] message
       expect(consoleErrorSpy).toHaveBeenCalledWith(
-        'Error saving Focus session:',
-        error,
+        expect.stringContaining('[ERROR]'),
       );
+      expect(consoleErrorSpy).toHaveBeenCalledWith('Error details:', error);
     });
   });
 
@@ -361,10 +372,11 @@ describe('storageService', () => {
 
       await loadFocusSessions();
 
+      // Logger format: [timestamp] [ERROR] [component] [action] message
       expect(consoleErrorSpy).toHaveBeenCalledWith(
-        'Error loading Focus sessions:',
-        error,
+        expect.stringContaining('[ERROR]'),
       );
+      expect(consoleErrorSpy).toHaveBeenCalledWith('Error details:', error);
     });
   });
 
@@ -454,10 +466,11 @@ describe('storageService', () => {
       await getTodaySessions();
 
       // getTodaySessions calls loadFocusSessions which logs the error
+      // Logger format: [timestamp] [ERROR] [component] [action] message
       expect(consoleErrorSpy).toHaveBeenCalledWith(
-        'Error loading Focus sessions:',
-        error,
+        expect.stringContaining('[ERROR]'),
       );
+      expect(consoleErrorSpy).toHaveBeenCalledWith('Error details:', error);
     });
   });
 

@@ -20,12 +20,13 @@
  * @module SessionHistory
  */
 
-import React, {useMemo} from 'react';
-import {View, Text, FlatList, StyleSheet} from 'react-native';
+import React, {useMemo, useCallback} from 'react';
+import {View, Text, StyleSheet} from 'react-native';
 import {useFocusStore} from '../store/focusStore';
 import {formatDuration} from '../utils/timeFormatter';
 import {mockTasks, mockLists} from '../../../data/mockData';
 import type {FocusSession} from '../types/focus.types';
+import {AccessibleColors} from '../utils/colorContrast';
 
 /**
  * Enhanced session item with task and list information
@@ -44,21 +45,32 @@ interface SessionItem extends FocusSession {
  * @returns React.JSX.Element
  */
 const SessionHistory: React.FC = (): React.JSX.Element => {
-  // Subscribe to store state
+  // Subscribe to store state - use separate selectors to avoid re-render loops
   const sessions = useFocusStore(state => state.sessions);
   const todayStats = useFocusStore(state => state.todayStats);
 
   /**
    * Filter and enhance today's sessions with task information
+   *
+   * Fixed Issue #16: Timezone-aware date filtering
+   * - Use local timezone for "today" calculation
+   * - Compare dates in local timezone, not UTC
+   * - Handle DST transitions correctly
    */
   const todaySessions = useMemo((): SessionItem[] => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    // Get today's date in local timezone
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
+    // Filter sessions that started today (in local timezone)
     const todaySessionsFiltered = sessions.filter(session => {
       const sessionDate = new Date(session.startTime);
-      sessionDate.setHours(0, 0, 0, 0);
-      return sessionDate.getTime() === today.getTime();
+      const sessionLocalDate = new Date(
+        sessionDate.getFullYear(),
+        sessionDate.getMonth(),
+        sessionDate.getDate(),
+      );
+      return sessionLocalDate.getTime() === today.getTime();
     });
 
     // Enhance sessions with task and list information
@@ -87,8 +99,9 @@ const SessionHistory: React.FC = (): React.JSX.Element => {
 
   /**
    * Get status icon for session
+   * Memoized callback to prevent re-creating function on every render
    */
-  const getStatusIcon = (status: string): string => {
+  const getStatusIcon = useCallback((status: string): string => {
     switch (status) {
       case 'completed':
         return '✅';
@@ -99,182 +112,274 @@ const SessionHistory: React.FC = (): React.JSX.Element => {
       default:
         return '❓';
     }
-  };
+  }, []);
 
   /**
    * Get status color for session
+   * Memoized callback to prevent re-creating function on every render
    */
-  const getStatusColor = (status: string): string => {
+  const getStatusColor = useCallback((status: string): string => {
     switch (status) {
       case 'completed':
-        return '#34C759';
+        return AccessibleColors.success;
       case 'interrupted':
-        return '#FF9500';
+        return AccessibleColors.warning;
       case 'active':
-        return '#007AFF';
+        return AccessibleColors.primary;
       default:
-        return '#8E8E93';
+        return AccessibleColors.secondary;
     }
-  };
+  }, []);
 
   /**
    * Format session time (start time)
+   * Memoized callback to prevent re-creating function on every render
    */
-  const formatSessionTime = (date: Date): string => {
+  const formatSessionTime = useCallback((date: Date): string => {
     return date.toLocaleTimeString(undefined, {
       hour: '2-digit',
       minute: '2-digit',
       hour12: false,
     });
-  };
+  }, []);
 
   /**
    * Format session duration
+   * Memoized callback to prevent re-creating function on every render
    */
-  const formatSessionDuration = (durationSeconds: number): string => {
-    return formatDuration(durationSeconds);
-  };
+  const formatSessionDuration = useCallback(
+    (durationSeconds: number): string => {
+      return formatDuration(durationSeconds);
+    },
+    [],
+  );
 
   /**
    * Render individual session item
+   * Memoized callback to prevent re-creating function on every render
    */
-  const renderSessionItem = ({
-    item,
-  }: {
-    item: SessionItem;
-  }): React.JSX.Element => {
-    const statusColor = getStatusColor(item.status);
-    const statusIcon = getStatusIcon(item.status);
+  const renderSessionItem = useCallback(
+    ({item}: {item: SessionItem}): React.JSX.Element => {
+      const statusColor = getStatusColor(item.status);
+      const statusIcon = getStatusIcon(item.status);
 
-    return (
-      <View
-        style={styles.sessionItem}
-        accessibilityLabel={`Session from ${formatSessionTime(
-          new Date(item.startTime),
-        )}, duration ${formatSessionDuration(item.durationSeconds)}, status ${
-          item.status
-        }`}
-        accessibilityRole="text">
-        {/* Session Header */}
-        <View style={styles.sessionHeader}>
-          <View style={styles.timeContainer}>
-            <Text style={styles.sessionTime}>
-              {formatSessionTime(new Date(item.startTime))}
-            </Text>
-            <Text style={styles.sessionDuration}>
-              {formatSessionDuration(item.durationSeconds)}
-            </Text>
-          </View>
-
-          <View
-            style={[
-              styles.statusContainer,
-              {backgroundColor: `${statusColor}20`},
-            ]}>
-            <Text style={styles.statusIcon}>{statusIcon}</Text>
-            <Text style={[styles.statusText, {color: statusColor}]}>
-              {item.status}
-            </Text>
-          </View>
-        </View>
-
-        {/* Session Details */}
-        <View style={styles.sessionDetails}>
-          {/* Task Information */}
-          {item.taskName ? (
-            <View style={styles.taskInfo}>
-              <Text style={styles.taskName} numberOfLines={2}>
-                {item.taskName}
+      return (
+        <View
+          style={styles.sessionItem}
+          accessibilityLabel={`Session from ${formatSessionTime(
+            new Date(item.startTime),
+          )}, duration ${formatSessionDuration(item.durationSeconds)}, status ${
+            item.status
+          }`}
+          accessibilityRole="text">
+          {/* Session Header */}
+          <View style={styles.sessionHeader}>
+            <View style={styles.timeContainer}>
+              <Text style={styles.sessionTime}>
+                {formatSessionTime(new Date(item.startTime))}
               </Text>
-              {item.listName && (
-                <Text style={styles.listName}>from {item.listName}</Text>
-              )}
-            </View>
-          ) : (
-            <Text style={styles.noTaskText}>No task selected</Text>
-          )}
-
-          {/* Pomodoros Completed */}
-          {item.pomodorosCompleted > 0 && (
-            <View style={styles.pomodoroInfo}>
-              <Text style={styles.pomodoroText}>
-                {item.pomodorosCompleted}{' '}
-                {item.pomodorosCompleted === 1 ? 'pomodoro' : 'pomodoros'}
+              <Text style={styles.sessionDuration}>
+                {formatSessionDuration(item.durationSeconds)}
               </Text>
             </View>
-          )}
+
+            <View
+              style={[
+                styles.statusContainer,
+                {backgroundColor: `${statusColor}20`},
+              ]}>
+              <Text style={styles.statusIcon}>{statusIcon}</Text>
+              <Text style={[styles.statusText, {color: statusColor}]}>
+                {item.status}
+              </Text>
+            </View>
+          </View>
+
+          {/* Session Details */}
+          <View style={styles.sessionDetails}>
+            {/* Task Information */}
+            {item.taskName ? (
+              <View style={styles.taskInfo}>
+                <Text style={styles.taskName} numberOfLines={2}>
+                  {item.taskName}
+                </Text>
+                {item.listName && (
+                  <Text style={styles.listName}>from {item.listName}</Text>
+                )}
+              </View>
+            ) : (
+              <Text style={styles.noTaskText}>No task selected</Text>
+            )}
+
+            {/* Pomodoros Completed */}
+            {item.pomodorosCompleted > 0 && (
+              <View style={styles.pomodoroInfo}>
+                <Text style={styles.pomodoroText}>
+                  {item.pomodorosCompleted}{' '}
+                  {item.pomodorosCompleted === 1 ? 'pomodoro' : 'pomodoros'}
+                </Text>
+              </View>
+            )}
+          </View>
         </View>
-      </View>
-    );
-  };
+      );
+    },
+    [getStatusColor, getStatusIcon, formatSessionTime, formatSessionDuration],
+  );
 
   /**
    * Render empty state
+   * Memoized to prevent re-creating component on every render
    */
-  const renderEmptyState = (): React.JSX.Element => (
-    <View style={styles.emptyState}>
-      <Text style={styles.emptyIcon}>🍅</Text>
-      <Text style={styles.emptyTitle}>No sessions today</Text>
-      <Text style={styles.emptySubtitle}>
-        Start your first Focus session to see your progress here
-      </Text>
-    </View>
+  const emptyStateComponent = useMemo(
+    (): React.JSX.Element => (
+      <View
+        style={styles.emptyState}
+        accessible={true}
+        accessibilityLabel="No Focus sessions completed today. Start your first Focus session to see your progress here."
+        accessibilityRole="text">
+        <Text
+          style={styles.emptyIcon}
+          accessible={false}
+          importantForAccessibility="no">
+          🍅
+        </Text>
+        <Text
+          style={styles.emptyTitle}
+          accessible={false}
+          importantForAccessibility="no">
+          No sessions today
+        </Text>
+        <Text
+          style={styles.emptySubtitle}
+          accessible={false}
+          importantForAccessibility="no">
+          Start your first Focus session to see your progress here
+        </Text>
+      </View>
+    ),
+    [],
   );
 
   /**
    * Render daily summary as list header
+   * Memoized to prevent re-creating component on every render
    */
-  const renderListHeader = (): React.JSX.Element | null => {
+  const listHeaderComponent = useMemo((): React.JSX.Element | null => {
     if (todaySessions.length === 0) {
       return null;
     }
 
+    const summaryAccessibilityLabel = `Today's summary: ${
+      todayStats.totalMinutes
+    } minutes, ${todayStats.pomodorosCompleted} pomodoros, ${
+      todayStats.sessionsCompleted
+    } completed sessions${
+      todayStats.sessionsInterrupted > 0
+        ? `, ${todayStats.sessionsInterrupted} interrupted sessions`
+        : ''
+    }`;
+
     return (
-      <View style={styles.dailySummary}>
-        <Text style={styles.summaryTitle}>Today's Summary</Text>
-        <View style={styles.summaryStats}>
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>{todayStats.totalMinutes}</Text>
-            <Text style={styles.statLabel}>minutes</Text>
+      <View
+        style={styles.dailySummary}
+        accessible={true}
+        accessibilityLabel={summaryAccessibilityLabel}>
+        <Text
+          style={styles.summaryTitle}
+          accessible={false}
+          importantForAccessibility="no">
+          Today's Summary
+        </Text>
+        <View style={styles.summaryStats} accessible={false}>
+          <View style={styles.statItem} accessible={false}>
+            <Text
+              style={styles.statNumber}
+              accessible={false}
+              importantForAccessibility="no">
+              {todayStats.totalMinutes}
+            </Text>
+            <Text
+              style={styles.statLabel}
+              accessible={false}
+              importantForAccessibility="no">
+              minutes
+            </Text>
           </View>
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>
+          <View style={styles.statItem} accessible={false}>
+            <Text
+              style={styles.statNumber}
+              accessible={false}
+              importantForAccessibility="no">
               {todayStats.pomodorosCompleted}
             </Text>
-            <Text style={styles.statLabel}>pomodoros</Text>
+            <Text
+              style={styles.statLabel}
+              accessible={false}
+              importantForAccessibility="no">
+              pomodoros
+            </Text>
           </View>
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>
+          <View style={styles.statItem} accessible={false}>
+            <Text
+              style={styles.statNumber}
+              accessible={false}
+              importantForAccessibility="no">
               {todayStats.sessionsCompleted}
             </Text>
-            <Text style={styles.statLabel}>completed</Text>
+            <Text
+              style={styles.statLabel}
+              accessible={false}
+              importantForAccessibility="no">
+              completed
+            </Text>
           </View>
           {todayStats.sessionsInterrupted > 0 && (
-            <View style={styles.statItem}>
-              <Text style={[styles.statNumber, styles.interruptedNumber]}>
+            <View style={styles.statItem} accessible={false}>
+              <Text
+                style={[styles.statNumber, styles.interruptedNumber]}
+                accessible={false}
+                importantForAccessibility="no">
                 {todayStats.sessionsInterrupted}
               </Text>
-              <Text style={styles.statLabel}>interrupted</Text>
+              <Text
+                style={styles.statLabel}
+                accessible={false}
+                importantForAccessibility="no">
+                interrupted
+              </Text>
             </View>
           )}
         </View>
-        <Text style={styles.sectionTitle}>Today's Sessions</Text>
+        <Text
+          style={styles.sectionTitle}
+          accessible={false}
+          importantForAccessibility="no">
+          Today's Sessions
+        </Text>
       </View>
     );
-  };
+  }, [
+    todaySessions.length,
+    todayStats.totalMinutes,
+    todayStats.pomodorosCompleted,
+    todayStats.sessionsCompleted,
+    todayStats.sessionsInterrupted,
+  ]);
 
   return (
-    <FlatList
-      style={styles.container}
-      data={todaySessions}
-      renderItem={renderSessionItem}
-      keyExtractor={item => item.id}
-      ListHeaderComponent={renderListHeader}
-      ListEmptyComponent={renderEmptyState}
-      contentContainerStyle={styles.contentContainer}
-      showsVerticalScrollIndicator={false}
-      accessibilityLabel="List of today's Focus sessions"
-    />
+    <View style={styles.container}>
+      {listHeaderComponent}
+      {todaySessions.length === 0 ? (
+        emptyStateComponent
+      ) : (
+        <View style={styles.contentContainer}>
+          {todaySessions.map(item => (
+            <View key={item.id}>{renderSessionItem({item})}</View>
+          ))}
+        </View>
+      )}
+    </View>
   );
 };
 
@@ -296,7 +401,7 @@ const styles = StyleSheet.create({
   summaryTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#000000',
+    color: AccessibleColors.primaryText,
     marginBottom: 12,
     textAlign: 'center',
   },
@@ -312,21 +417,21 @@ const styles = StyleSheet.create({
   statNumber: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#007AFF',
+    color: AccessibleColors.primary,
   },
   interruptedNumber: {
-    color: '#FF9500',
+    color: AccessibleColors.warning,
   },
   statLabel: {
     fontSize: 12,
     fontWeight: '500',
-    color: '#8E8E93',
+    color: AccessibleColors.secondary,
     marginTop: 2,
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#000000',
+    color: AccessibleColors.primaryText,
     marginTop: 8,
   },
   sessionItem: {
@@ -349,11 +454,11 @@ const styles = StyleSheet.create({
   sessionTime: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#000000',
+    color: AccessibleColors.primaryText,
   },
   sessionDuration: {
     fontSize: 14,
-    color: '#8E8E93',
+    color: AccessibleColors.secondary,
     marginTop: 2,
   },
   statusContainer: {
@@ -381,17 +486,17 @@ const styles = StyleSheet.create({
   taskName: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#000000',
+    color: AccessibleColors.primaryText,
     lineHeight: 20,
   },
   listName: {
     fontSize: 12,
-    color: '#007AFF',
+    color: AccessibleColors.primary,
     marginTop: 2,
   },
   noTaskText: {
     fontSize: 14,
-    color: '#8E8E93',
+    color: AccessibleColors.secondary,
     fontStyle: 'italic',
   },
   pomodoroInfo: {
@@ -400,8 +505,8 @@ const styles = StyleSheet.create({
   pomodoroText: {
     fontSize: 12,
     fontWeight: '500',
-    color: '#34C759',
-    backgroundColor: '#34C75920',
+    color: AccessibleColors.success,
+    backgroundColor: '#22C55E20',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 6,
@@ -418,13 +523,13 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#000000',
+    color: AccessibleColors.primaryText,
     marginBottom: 8,
     textAlign: 'center',
   },
   emptySubtitle: {
     fontSize: 14,
-    color: '#8E8E93',
+    color: AccessibleColors.secondary,
     textAlign: 'center',
     lineHeight: 20,
   },

@@ -11,3 +11,4 @@ export {default as TimerControls} from './TimerControls';
 export {default as TaskSelector} from './TaskSelector';
 export {default as PomodoroProgress} from './PomodoroProgress';
 export {default as SessionHistory} from './SessionHistory';
+export {default as ErrorBoundary} from './ErrorBoundary';

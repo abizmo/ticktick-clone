@@ -17,7 +17,7 @@
  * @module TaskSelector
  */
 
-import React, {useState, useMemo} from 'react';
+import React, {useState, useMemo, useCallback, useRef} from 'react';
 import {
   View,
   Text,
@@ -27,10 +27,13 @@ import {
   StyleSheet,
   SafeAreaView,
   Alert,
+  Animated,
+  AccessibilityInfo,
 } from 'react-native';
 import {useFocusStore} from '../store/focusStore';
 import {mockTasks, mockLists} from '../../../data/mockData';
 import type {Task} from '../types/focus.types';
+import {AccessibleColors} from '../utils/colorContrast';
 
 /**
  * Task item for the selection list
@@ -49,7 +52,7 @@ interface TaskItem {
  * @returns React.JSX.Element
  */
 const TaskSelector: React.FC = (): React.JSX.Element => {
-  // Subscribe to store state and actions
+  // Subscribe to store state and actions - use separate selectors to prevent re-renders
   const selectedTask = useFocusStore(state => state.selectedTask);
   const currentSession = useFocusStore(state => state.currentSession);
   const selectTask = useFocusStore(state => state.selectTask);
@@ -57,8 +60,12 @@ const TaskSelector: React.FC = (): React.JSX.Element => {
   // Local state for modal
   const [isModalVisible, setIsModalVisible] = useState(false);
 
+  // Animation values for press feedback
+  const selectorScale = useRef(new Animated.Value(1)).current;
+
   /**
    * Get available tasks (incomplete only) with list information
+   * Note: mockTasks and mockLists are static imports, so we don't need them as dependencies
    */
   const availableTasks = useMemo((): TaskItem[] => {
     // Defensive check for mockData availability
@@ -86,54 +93,92 @@ const TaskSelector: React.FC = (): React.JSX.Element => {
 
     // Add "No task" option at the beginning
     return [{task: null, listName: undefined}, ...taskItems];
-  }, []);
+  }, []); // Empty deps array is correct - mockTasks and mockLists are static
 
   /**
    * Get priority color for task
+   * Memoized callback to prevent re-creating function on every render
    */
-  const getPriorityColor = (priority: 'low' | 'medium' | 'high'): string => {
-    switch (priority) {
-      case 'high':
-        return '#FF3B30';
-      case 'medium':
-        return '#FF9500';
-      case 'low':
-        return '#34C759';
-      default:
-        return '#8E8E93';
-    }
-  };
+  const getPriorityColor = useCallback(
+    (priority: 'low' | 'medium' | 'high'): string => {
+      switch (priority) {
+        case 'high':
+          return AccessibleColors.error;
+        case 'medium':
+          return AccessibleColors.warning;
+        case 'low':
+          return AccessibleColors.success;
+        default:
+          return AccessibleColors.secondary;
+      }
+    },
+    [],
+  );
 
   /**
    * Get priority indicator symbol
+   * Memoized callback to prevent re-creating function on every render
    */
-  const getPriorityIndicator = (
-    priority: 'low' | 'medium' | 'high',
-  ): string => {
-    switch (priority) {
-      case 'high':
-        return '!!!';
-      case 'medium':
-        return '!!';
-      case 'low':
-        return '!';
-      default:
-        return '!'; // Consistent default with getPriorityColor
-    }
-  };
+  const getPriorityIndicator = useCallback(
+    (priority: 'low' | 'medium' | 'high'): string => {
+      switch (priority) {
+        case 'high':
+          return '!!!';
+        case 'medium':
+          return '!!';
+        case 'low':
+          return '!';
+        default:
+          return '!'; // Consistent default with getPriorityColor
+      }
+    },
+    [],
+  );
+
+  /**
+   * Create press animation for selector
+   */
+  const createSelectorPressAnimation = useCallback(() => {
+    return {
+      onPressIn: () => {
+        Animated.spring(selectorScale, {
+          toValue: 0.98,
+          useNativeDriver: true,
+          tension: 300,
+          friction: 10,
+        }).start();
+      },
+      onPressOut: () => {
+        Animated.spring(selectorScale, {
+          toValue: 1,
+          useNativeDriver: true,
+          tension: 300,
+          friction: 10,
+        }).start();
+      },
+    };
+  }, [selectorScale]);
 
   /**
    * Handle task selection
+   * Memoized callback to prevent re-creating function on every render
    */
-  const handleTaskSelect = (taskItem: TaskItem): void => {
-    selectTask(taskItem.task);
-    setIsModalVisible(false);
-  };
+  const handleTaskSelect = useCallback(
+    (taskItem: TaskItem): void => {
+      const taskName = taskItem.task?.title || 'No task';
+      AccessibilityInfo.announceForAccessibility(`Selected task: ${taskName}`);
+
+      selectTask(taskItem.task);
+      setIsModalVisible(false);
+    },
+    [selectTask],
+  );
 
   /**
    * Handle opening task selector
+   * Memoized callback to prevent re-creating function on every render
    */
-  const handleOpenSelector = (): void => {
+  const handleOpenSelector = useCallback((): void => {
     // Check if session is active and prevent changes
     if (currentSession) {
       Alert.alert(
@@ -145,22 +190,26 @@ const TaskSelector: React.FC = (): React.JSX.Element => {
     }
 
     setIsModalVisible(true);
-  };
+  }, [currentSession]);
 
   /**
    * Get selected task display text
+   * Memoized to prevent recalculation on every render
+   * Use selectedTask?.id as dependency to avoid re-renders when object reference changes
    */
-  const getSelectedTaskDisplay = (): string => {
+  const selectedTaskDisplay = useMemo((): string => {
     if (!selectedTask) {
       return 'No task selected';
     }
     return selectedTask.title;
-  };
+  }, [selectedTask]);
 
   /**
    * Get selected task list name
+   * Memoized to prevent recalculation on every render
+   * Use selectedTask?.id as dependency to avoid re-renders when object reference changes
    */
-  const getSelectedTaskListName = (): string | undefined => {
+  const selectedTaskListName = useMemo((): string | undefined => {
     if (!selectedTask) {
       return undefined;
     }
@@ -169,126 +218,177 @@ const TaskSelector: React.FC = (): React.JSX.Element => {
     }
     const foundList = mockLists.find(list => list.id === selectedTask.listId);
     return foundList?.name;
-  };
+  }, [selectedTask]);
 
   /**
    * Render task item in the selection list
+   * Memoized callback to prevent re-creating function on every render
    */
-  const renderTaskItem = ({item}: {item: TaskItem}): React.JSX.Element => {
-    const isSelected = item.task?.id === selectedTask?.id;
-    const isNoTask = item.task === null;
+  const renderTaskItem = useCallback(
+    ({item}: {item: TaskItem}): React.JSX.Element => {
+      const isSelected = item.task?.id === selectedTask?.id;
+      const isNoTask = item.task === null;
 
-    return (
-      <TouchableOpacity
-        style={[styles.taskItem, isSelected && styles.selectedTaskItem]}
-        onPress={() => handleTaskSelect(item)}
-        accessibilityLabel={
-          isNoTask
-            ? 'No task selected'
-            : `Select task: ${item.task?.title} from ${item.listName}`
-        }
-        accessibilityRole="button"
-        accessibilityState={{selected: isSelected}}>
-        {isNoTask ? (
-          <View style={styles.noTaskContainer}>
-            <Text style={styles.noTaskText}>No task</Text>
-            <Text style={styles.noTaskSubtext}>
-              Focus without a specific task
-            </Text>
-          </View>
-        ) : (
-          <View style={styles.taskContent}>
-            <View style={styles.taskHeader}>
-              <Text
-                style={[
-                  styles.taskTitle,
-                  isSelected && styles.selectedTaskTitle,
-                ]}
-                numberOfLines={2}>
-                {item.task?.title}
+      return (
+        <TouchableOpacity
+          style={[styles.taskItem, isSelected && styles.selectedTaskItem]}
+          onPress={() => handleTaskSelect(item)}
+          accessibilityLabel={
+            isNoTask
+              ? 'No task selected'
+              : `Select task: ${item.task?.title} from ${item.listName}`
+          }
+          accessibilityRole="button"
+          accessibilityState={{selected: isSelected}}>
+          {isNoTask ? (
+            <View style={styles.noTaskContainer}>
+              <Text style={styles.noTaskText}>No task</Text>
+              <Text style={styles.noTaskSubtext}>
+                Focus without a specific task
               </Text>
-              <View
-                style={[
-                  styles.priorityIndicator,
-                  {backgroundColor: getPriorityColor(item.task!.priority)},
-                ]}>
-                <Text style={styles.priorityText}>
-                  {getPriorityIndicator(item.task!.priority)}
-                </Text>
-              </View>
             </View>
+          ) : (
+            <View style={styles.taskContent}>
+              <View style={styles.taskHeader}>
+                <Text
+                  style={[
+                    styles.taskTitle,
+                    isSelected && styles.selectedTaskTitle,
+                  ]}
+                  numberOfLines={2}>
+                  {item.task?.title}
+                </Text>
+                <View
+                  style={[
+                    styles.priorityIndicator,
+                    {backgroundColor: getPriorityColor(item.task!.priority)},
+                  ]}>
+                  <Text style={styles.priorityText}>
+                    {getPriorityIndicator(item.task!.priority)}
+                  </Text>
+                </View>
+              </View>
 
-            <View style={styles.taskMeta}>
-              <Text style={styles.listName}>{item.listName}</Text>
-              {item.task?.dueDate && (
-                <Text style={styles.dueDate}>
-                  Due: {item.task.dueDate.toLocaleDateString()}
+              <View style={styles.taskMeta}>
+                <Text style={styles.listName}>{item.listName}</Text>
+                {item.task?.dueDate && (
+                  <Text style={styles.dueDate}>
+                    Due: {item.task.dueDate.toLocaleDateString()}
+                  </Text>
+                )}
+              </View>
+
+              {item.task?.description && (
+                <Text style={styles.taskDescription} numberOfLines={2}>
+                  {item.task.description}
                 </Text>
               )}
             </View>
+          )}
 
-            {item.task?.description && (
-              <Text style={styles.taskDescription} numberOfLines={2}>
-                {item.task.description}
-              </Text>
-            )}
-          </View>
-        )}
+          {isSelected && (
+            <View style={styles.checkmark}>
+              <Text style={styles.checkmarkText}>✓</Text>
+            </View>
+          )}
+        </TouchableOpacity>
+      );
+    },
+    [
+      selectedTask?.id,
+      handleTaskSelect,
+      getPriorityColor,
+      getPriorityIndicator,
+    ],
+  );
 
-        {isSelected && (
-          <View style={styles.checkmark}>
-            <Text style={styles.checkmarkText}>✓</Text>
-          </View>
-        )}
-      </TouchableOpacity>
-    );
-  };
+  /**
+   * Key extractor for FlatList
+   * Memoized callback to prevent re-creating function on every render
+   */
+  const keyExtractor = useCallback(
+    (item: TaskItem) => item.task?.id ?? 'no-task',
+    [],
+  );
+
+  /**
+   * Handle modal close
+   * Memoized callback to prevent re-creating function on every render
+   */
+  const handleModalClose = useCallback(() => setIsModalVisible(false), []);
 
   return (
     <View style={styles.container}>
       {/* Current Task Display */}
-      <TouchableOpacity
-        style={styles.selector}
-        onPress={handleOpenSelector}
-        accessibilityLabel={`Currently selected task: ${getSelectedTaskDisplay()}. Tap to change.`}
-        accessibilityRole="button"
-        accessibilityHint="Opens a list of tasks to choose from for your Focus session">
-        <View style={styles.selectorContent}>
-          <Text style={styles.selectorLabel}>Task</Text>
-          <Text
-            style={[
-              styles.selectorValue,
-              !selectedTask && styles.selectorPlaceholder,
-            ]}
-            numberOfLines={2}>
-            {getSelectedTaskDisplay()}
-          </Text>
-          {selectedTask && getSelectedTaskListName() && (
-            <Text style={styles.selectorMeta}>
-              from {getSelectedTaskListName()}
+      <Animated.View style={{transform: [{scale: selectorScale}]}}>
+        <TouchableOpacity
+          style={styles.selector}
+          onPress={handleOpenSelector}
+          accessibilityLabel={`Currently selected task: ${selectedTaskDisplay}. Tap to change.`}
+          accessibilityRole="button"
+          accessibilityHint="Opens a list of tasks to choose from for your Focus session"
+          {...createSelectorPressAnimation()}>
+          <View style={styles.selectorContent}>
+            <Text style={styles.selectorLabel}>Task</Text>
+            <Text
+              style={[
+                styles.selectorValue,
+                !selectedTask && styles.selectorPlaceholder,
+              ]}
+              numberOfLines={2}
+              accessible={false}
+              importantForAccessibility="no">
+              {selectedTaskDisplay}
             </Text>
-          )}
-        </View>
-        <Text style={styles.selectorArrow}>›</Text>
-      </TouchableOpacity>
+            {selectedTask && selectedTaskListName && (
+              <Text
+                style={styles.selectorMeta}
+                accessible={false}
+                importantForAccessibility="no">
+                from {selectedTaskListName}
+              </Text>
+            )}
+          </View>
+          <Text
+            style={styles.selectorArrow}
+            accessible={false}
+            importantForAccessibility="no">
+            ›
+          </Text>
+        </TouchableOpacity>
+      </Animated.View>
 
       {/* Task Selection Modal */}
       <Modal
         visible={isModalVisible}
         animationType="slide"
         presentationStyle="pageSheet"
-        onRequestClose={() => setIsModalVisible(false)}>
+        onRequestClose={handleModalClose}
+        onShow={() =>
+          AccessibilityInfo.announceForAccessibility(
+            'Task selection opened. Choose a task or select no task.',
+          )
+        }>
         <SafeAreaView style={styles.modalContainer}>
           {/* Modal Header */}
-          <View style={styles.modalHeader}>
+          <View
+            style={styles.modalHeader}
+            accessible={true}
+            accessibilityRole="header">
             <TouchableOpacity
-              onPress={() => setIsModalVisible(false)}
+              onPress={handleModalClose}
               style={styles.cancelButton}
               accessibilityLabel="Cancel task selection"
-              accessibilityRole="button">
+              accessibilityRole="button"
+              accessibilityHint="Closes the task selection without making changes">
               <Text style={styles.cancelButtonText}>Cancel</Text>
             </TouchableOpacity>
-            <Text style={styles.modalTitle}>Select Task</Text>
+            <Text
+              style={styles.modalTitle}
+              accessible={false}
+              importantForAccessibility="no">
+              Select Task
+            </Text>
             <View style={styles.headerSpacer} />
           </View>
 
@@ -296,11 +396,16 @@ const TaskSelector: React.FC = (): React.JSX.Element => {
           <FlatList
             data={availableTasks}
             renderItem={renderTaskItem}
-            keyExtractor={item => item.task?.id ?? 'no-task'}
+            keyExtractor={keyExtractor}
             style={styles.taskList}
             contentContainerStyle={styles.taskListContent}
             showsVerticalScrollIndicator={true}
-            accessibilityLabel="List of available tasks"
+            accessible={true}
+            accessibilityLabel={`List of ${availableTasks.length} available tasks. Swipe to browse.`}
+            accessibilityRole="list"
+            maxToRenderPerBatch={10}
+            windowSize={10}
+            removeClippedSubviews={true}
           />
         </SafeAreaView>
       </Modal>
@@ -328,7 +433,7 @@ const styles = StyleSheet.create({
   selectorLabel: {
     fontSize: 12,
     fontWeight: '500',
-    color: '#8E8E93',
+    color: AccessibleColors.secondary,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
     marginBottom: 4,
@@ -336,20 +441,20 @@ const styles = StyleSheet.create({
   selectorValue: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#000000',
+    color: AccessibleColors.primaryText,
   },
   selectorPlaceholder: {
-    color: '#8E8E93',
+    color: AccessibleColors.secondary,
     fontStyle: 'italic',
   },
   selectorMeta: {
     fontSize: 14,
-    color: '#8E8E93',
+    color: AccessibleColors.secondary,
     marginTop: 2,
   },
   selectorArrow: {
     fontSize: 20,
-    color: '#C7C7CC',
+    color: AccessibleColors.border,
     fontWeight: '300',
   },
   modalContainer: {
@@ -371,13 +476,13 @@ const styles = StyleSheet.create({
   },
   cancelButtonText: {
     fontSize: 16,
-    color: '#007AFF',
+    color: AccessibleColors.primary,
     fontWeight: '500',
   },
   modalTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#000000',
+    color: AccessibleColors.primaryText,
   },
   headerSpacer: {
     width: 60,
@@ -399,7 +504,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   selectedTaskItem: {
-    borderColor: '#007AFF',
+    borderColor: AccessibleColors.primary,
     backgroundColor: '#F0F8FF',
   },
   noTaskContainer: {
@@ -408,12 +513,12 @@ const styles = StyleSheet.create({
   noTaskText: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#000000',
+    color: AccessibleColors.primaryText,
     marginBottom: 4,
   },
   noTaskSubtext: {
     fontSize: 14,
-    color: '#8E8E93',
+    color: AccessibleColors.secondary,
   },
   taskContent: {
     flex: 1,
@@ -427,12 +532,12 @@ const styles = StyleSheet.create({
   taskTitle: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#000000',
+    color: AccessibleColors.primaryText,
     flex: 1,
     marginRight: 8,
   },
   selectedTaskTitle: {
-    color: '#007AFF',
+    color: AccessibleColors.primary,
   },
   priorityIndicator: {
     paddingHorizontal: 6,
@@ -453,17 +558,17 @@ const styles = StyleSheet.create({
   },
   listName: {
     fontSize: 14,
-    color: '#007AFF',
+    color: AccessibleColors.primary,
     fontWeight: '500',
     marginRight: 12,
   },
   dueDate: {
     fontSize: 12,
-    color: '#8E8E93',
+    color: AccessibleColors.secondary,
   },
   taskDescription: {
     fontSize: 14,
-    color: '#8E8E93',
+    color: AccessibleColors.secondary,
     lineHeight: 20,
   },
   checkmark: {
@@ -471,7 +576,7 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: '#007AFF',
+    backgroundColor: AccessibleColors.primary,
     alignItems: 'center',
     justifyContent: 'center',
   },

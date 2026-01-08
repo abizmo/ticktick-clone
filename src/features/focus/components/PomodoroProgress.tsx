@@ -17,9 +17,10 @@
  * @module PomodoroProgress
  */
 
-import React from 'react';
+import React, {useMemo} from 'react';
 import {View, Text, StyleSheet} from 'react-native';
 import {useFocusStore} from '../store/focusStore';
+import {AccessibleColors} from '../utils/colorContrast';
 
 /**
  * PomodoroProgress Component
@@ -30,15 +31,16 @@ import {useFocusStore} from '../store/focusStore';
  * @returns React.JSX.Element
  */
 const PomodoroProgress: React.FC = (): React.JSX.Element => {
-  // Subscribe to store state
+  // Subscribe to store state - use separate selectors to avoid re-render loops
   const todayStats = useFocusStore(state => state.todayStats);
   const timerState = useFocusStore(state => state.timerState);
   const settings = useFocusStore(state => state.settings);
 
   /**
    * Calculate next break type based on current progress
+   * Memoized to prevent recalculation on every render
    */
-  const getNextBreakType = (): 'short' | 'long' | null => {
+  const getNextBreakType = useMemo((): 'short' | 'long' | null => {
     // If currently in a break, return null
     if (timerState.currentPhase !== 'work') {
       return null;
@@ -64,12 +66,18 @@ const PomodoroProgress: React.FC = (): React.JSX.Element => {
     const isLongBreak = nextPomodoroCount % pomosBeforeLongBreak === 0;
 
     return isLongBreak ? 'long' : 'short';
-  };
+  }, [
+    timerState.currentPhase,
+    timerState.pomodorosCompleted,
+    todayStats.pomodorosCompleted,
+    settings.pomosBeforeLongBreak,
+  ]);
 
   /**
    * Generate tomato indicators for completed pomodoros
+   * Memoized to prevent re-creating array on every render (Issue #20)
    */
-  const renderTomatoIndicators = (): React.JSX.Element[] => {
+  const tomatoIndicators = useMemo((): React.JSX.Element[] => {
     const totalCompleted = todayStats.pomodorosCompleted;
     const maxIndicators = 8; // Limit visual indicators to prevent overflow
     const showCount = Math.min(totalCompleted, maxIndicators);
@@ -81,7 +89,8 @@ const PomodoroProgress: React.FC = (): React.JSX.Element => {
         <Text
           key={i}
           style={styles.tomatoIcon}
-          accessibilityLabel="Completed pomodoro">
+          accessible={false}
+          importantForAccessibility="no">
           🍅
         </Text>,
       );
@@ -93,54 +102,73 @@ const PomodoroProgress: React.FC = (): React.JSX.Element => {
         <Text
           key="overflow"
           style={styles.overflowText}
-          accessibilityLabel={`Plus ${
-            totalCompleted - maxIndicators
-          } more pomodoros`}>
+          accessible={false}
+          importantForAccessibility="no">
           +{totalCompleted - maxIndicators}
         </Text>,
       );
     }
 
     return indicators;
-  };
+  }, [todayStats.pomodorosCompleted]);
 
   /**
    * Get next break display text
+   * Memoized to prevent recalculation on every render
    */
-  const getNextBreakText = (): string => {
-    const nextBreak = getNextBreakType();
+  const nextBreakText = useMemo((): string => {
+    const nextBreak = getNextBreakType;
 
     if (!nextBreak) {
       return '';
     }
 
     return nextBreak === 'long' ? 'Next: Long Break' : 'Next: Short Break';
-  };
+  }, [getNextBreakType]);
 
-  const nextBreakText = getNextBreakText();
   const totalCompleted = todayStats.pomodorosCompleted;
 
+  // Create comprehensive accessibility label for the entire component
+  const containerAccessibilityLabel = useMemo(() => {
+    let label = `Today's progress: ${totalCompleted} ${
+      totalCompleted === 1 ? 'pomodoro' : 'pomodoros'
+    } completed.`;
+    if (nextBreakText) {
+      label += ` ${nextBreakText}`;
+    }
+    if (totalCompleted === 0) {
+      label += ' No pomodoros completed yet today.';
+    }
+    return label;
+  }, [totalCompleted, nextBreakText]);
+
   return (
-    <View style={styles.container}>
+    <View
+      style={styles.container}
+      accessible={true}
+      accessibilityLabel={containerAccessibilityLabel}>
       {/* Pomodoros Completed Section */}
-      <View style={styles.progressSection}>
+      <View style={styles.progressSection} accessible={false}>
         <Text
           style={styles.sectionTitle}
-          accessibilityLabel="Today's progress"
-          accessibilityRole="text">
+          accessible={false}
+          importantForAccessibility="no">
           Today
         </Text>
 
-        <View style={styles.progressContent}>
+        <View style={styles.progressContent} accessible={false}>
           {/* Count Display */}
-          <View style={styles.countContainer}>
+          <View style={styles.countContainer} accessible={false}>
             <Text
               style={styles.countNumber}
-              accessibilityLabel={`${totalCompleted} pomodoros completed today`}
-              accessibilityRole="text">
+              accessible={false}
+              importantForAccessibility="no">
               {totalCompleted}
             </Text>
-            <Text style={styles.countLabel}>
+            <Text
+              style={styles.countLabel}
+              accessible={false}
+              importantForAccessibility="no">
               {totalCompleted === 1 ? 'pomodoro' : 'pomodoros'}
             </Text>
           </View>
@@ -149,8 +177,9 @@ const PomodoroProgress: React.FC = (): React.JSX.Element => {
           {totalCompleted > 0 && (
             <View
               style={styles.indicatorsContainer}
-              accessibilityLabel={`Visual indicators showing ${totalCompleted} completed pomodoros`}>
-              {renderTomatoIndicators()}
+              accessible={false}
+              importantForAccessibility="no">
+              {tomatoIndicators}
             </View>
           )}
         </View>
@@ -158,11 +187,11 @@ const PomodoroProgress: React.FC = (): React.JSX.Element => {
 
       {/* Next Break Section */}
       {nextBreakText && (
-        <View style={styles.nextBreakSection}>
+        <View style={styles.nextBreakSection} accessible={false}>
           <Text
             style={styles.nextBreakText}
-            accessibilityLabel={nextBreakText}
-            accessibilityRole="text">
+            accessible={false}
+            importantForAccessibility="no">
             {nextBreakText}
           </Text>
         </View>
@@ -185,7 +214,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#8E8E93',
+    color: AccessibleColors.secondary,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
     marginBottom: 8,
@@ -201,13 +230,13 @@ const styles = StyleSheet.create({
   countNumber: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#007AFF',
+    color: AccessibleColors.primary,
     marginRight: 6,
   },
   countLabel: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#8E8E93',
+    color: AccessibleColors.secondary,
   },
   indicatorsContainer: {
     flexDirection: 'row',
@@ -222,7 +251,7 @@ const styles = StyleSheet.create({
   overflowText: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#8E8E93',
+    color: AccessibleColors.secondary,
     marginLeft: 4,
   },
   nextBreakSection: {
@@ -235,7 +264,7 @@ const styles = StyleSheet.create({
   nextBreakText: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#34C759',
+    color: AccessibleColors.success,
   },
 });
 
