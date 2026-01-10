@@ -189,6 +189,11 @@ const FocusSettingsScreen: React.FC<FocusSettingsScreenProps> = ({
           error,
           data: {workDuration},
         });
+        Alert.alert(
+          'Error',
+          'Failed to save work duration. Please try again.',
+          [{text: 'OK'}],
+        );
         AccessibilityInfo.announceForAccessibility(
           'Failed to update work duration',
         );
@@ -224,7 +229,17 @@ const FocusSettingsScreen: React.FC<FocusSettingsScreenProps> = ({
           `Short break duration updated to ${shortBreak} minutes`,
         );
       } catch (error) {
-        console.error('Failed to update short break:', error);
+        logger.error('Failed to update short break', {
+          component: 'FocusSettingsScreen',
+          action: 'handleShortBreakBlur',
+          error,
+          data: {shortBreak},
+        });
+        Alert.alert(
+          'Error',
+          'Failed to save short break duration. Please try again.',
+          [{text: 'OK'}],
+        );
         AccessibilityInfo.announceForAccessibility(
           'Failed to update short break duration',
         );
@@ -260,7 +275,17 @@ const FocusSettingsScreen: React.FC<FocusSettingsScreenProps> = ({
           `Long break duration updated to ${longBreak} minutes`,
         );
       } catch (error) {
-        console.error('Failed to update long break:', error);
+        logger.error('Failed to update long break', {
+          component: 'FocusSettingsScreen',
+          action: 'handleLongBreakBlur',
+          error,
+          data: {longBreak},
+        });
+        Alert.alert(
+          'Error',
+          'Failed to save long break duration. Please try again.',
+          [{text: 'OK'}],
+        );
         AccessibilityInfo.announceForAccessibility(
           'Failed to update long break duration',
         );
@@ -296,7 +321,17 @@ const FocusSettingsScreen: React.FC<FocusSettingsScreenProps> = ({
           `Pomodoros before long break updated to ${pomosBeforeLongBreak}`,
         );
       } catch (error) {
-        console.error('Failed to update pomodoros before long break:', error);
+        logger.error('Failed to update pomodoros before long break', {
+          component: 'FocusSettingsScreen',
+          action: 'handlePomosBeforeLongBreakBlur',
+          error,
+          data: {pomosBeforeLongBreak},
+        });
+        Alert.alert(
+          'Error',
+          'Failed to save pomodoros before long break. Please try again.',
+          [{text: 'OK'}],
+        );
         AccessibilityInfo.announceForAccessibility(
           'Failed to update pomodoros before long break',
         );
@@ -332,7 +367,17 @@ const FocusSettingsScreen: React.FC<FocusSettingsScreenProps> = ({
           `Maximum pauses per session updated to ${maxPauses}`,
         );
       } catch (error) {
-        console.error('Failed to update max pauses:', error);
+        logger.error('Failed to update max pauses', {
+          component: 'FocusSettingsScreen',
+          action: 'handleMaxPausesBlur',
+          error,
+          data: {maxPauses},
+        });
+        Alert.alert(
+          'Error',
+          'Failed to save maximum pauses. Please try again.',
+          [{text: 'OK'}],
+        );
         AccessibilityInfo.announceForAccessibility(
           'Failed to update maximum pauses',
         );
@@ -357,7 +402,17 @@ const FocusSettingsScreen: React.FC<FocusSettingsScreenProps> = ({
         `Confirm stop ${value ? 'enabled' : 'disabled'}`,
       );
     } catch (error) {
-      console.error('Failed to update confirm stop:', error);
+      logger.error('Failed to update confirm stop', {
+        component: 'FocusSettingsScreen',
+        action: 'handleConfirmStopChange',
+        error,
+        data: {confirmStop: value},
+      });
+      Alert.alert(
+        'Error',
+        'Failed to save confirm stop setting. Please try again.',
+        [{text: 'OK'}],
+      );
       AccessibilityInfo.announceForAccessibility(
         'Failed to update confirm stop setting',
       );
@@ -391,7 +446,16 @@ const FocusSettingsScreen: React.FC<FocusSettingsScreenProps> = ({
               setPomosBeforeLongBreakError(false);
               setMaxPausesError(false);
             } catch (error) {
-              console.error('Failed to restore defaults:', error);
+              logger.error('Failed to restore default settings', {
+                component: 'FocusSettingsScreen',
+                action: 'handleRestoreDefaults',
+                error,
+              });
+              Alert.alert(
+                'Error',
+                'Failed to restore default settings. Please try again.',
+                [{text: 'OK'}],
+              );
             }
           },
         },

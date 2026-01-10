@@ -500,10 +500,11 @@ describe('storageService', () => {
       (AsyncStorage.removeItem as jest.Mock).mockRejectedValueOnce(error);
 
       await expect(clearAllSessions()).rejects.toThrow();
+      // Logger format: [timestamp] [ERROR] [component] [action] message
       expect(consoleErrorSpy).toHaveBeenCalledWith(
-        'Error clearing Focus sessions:',
-        error,
+        expect.stringContaining('[ERROR]'),
       );
+      expect(consoleErrorSpy).toHaveBeenCalledWith('Error details:', error);
     });
   });
 
@@ -560,10 +561,11 @@ describe('storageService', () => {
       (AsyncStorage.setItem as jest.Mock).mockRejectedValueOnce(error);
 
       await expect(saveCurrentSession(session)).rejects.toThrow();
+      // Logger format: [timestamp] [ERROR] [component] [action] message
       expect(consoleErrorSpy).toHaveBeenCalledWith(
-        'Error saving current session:',
-        error,
+        expect.stringContaining('[ERROR]'),
       );
+      expect(consoleErrorSpy).toHaveBeenCalledWith('Error details:', error);
     });
   });
 
@@ -642,11 +644,11 @@ describe('storageService', () => {
       (AsyncStorage.getItem as jest.Mock).mockRejectedValueOnce(error);
 
       await loadCurrentSession();
-
+      // Logger format: [timestamp] [ERROR] [component] [action] message
       expect(consoleErrorSpy).toHaveBeenCalledWith(
-        'Error loading current session:',
-        error,
+        expect.stringContaining('[ERROR]'),
       );
+      expect(consoleErrorSpy).toHaveBeenCalledWith('Error details:', error);
     });
   });
 
@@ -682,10 +684,11 @@ describe('storageService', () => {
       (AsyncStorage.multiRemove as jest.Mock).mockRejectedValueOnce(error);
 
       await expect(clearAllFocusData()).rejects.toThrow();
+      // Logger format: [timestamp] [ERROR] [component] [action] message
       expect(consoleErrorSpy).toHaveBeenCalledWith(
-        'Error clearing all Focus data:',
-        error,
+        expect.stringContaining('[ERROR]'),
       );
+      expect(consoleErrorSpy).toHaveBeenCalledWith('Error details:', error);
     });
   });
 

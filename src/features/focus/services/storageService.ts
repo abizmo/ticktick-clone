@@ -259,7 +259,11 @@ export const getTodaySessions = async (): Promise<FocusSession[]> => {
 
     return todaySessions;
   } catch (error) {
-    console.error("Error getting today's sessions:", error);
+    logger.error("Failed to get today's sessions", {
+      component: 'storageService',
+      action: 'getTodaySessions',
+      error,
+    });
     return [];
   }
 };
@@ -275,7 +279,11 @@ export const clearAllSessions = async (): Promise<void> => {
   try {
     await AsyncStorage.removeItem(StorageKeys.FOCUS_SESSIONS);
   } catch (error) {
-    console.error('Error clearing Focus sessions:', error);
+    logger.error('Failed to clear Focus sessions', {
+      component: 'storageService',
+      action: 'clearAllSessions',
+      error,
+    });
     throw new Error('Failed to clear Focus sessions');
   }
 };
@@ -302,7 +310,12 @@ export const saveCurrentSession = async (
       await AsyncStorage.setItem(StorageKeys.CURRENT_SESSION, jsonValue);
     }
   } catch (error) {
-    console.error('Error saving current session:', error);
+    logger.error('Failed to save current session', {
+      component: 'storageService',
+      action: 'saveCurrentSession',
+      error,
+      data: {sessionId: session?.id},
+    });
     throw new Error('Failed to save current session');
   }
 };
@@ -331,7 +344,11 @@ export const loadCurrentSession = async (): Promise<FocusSession | null> => {
       updatedAt: new Date(session.updatedAt),
     };
   } catch (error) {
-    console.error('Error loading current session:', error);
+    logger.error('Failed to load current session', {
+      component: 'storageService',
+      action: 'loadCurrentSession',
+      error,
+    });
     return null;
   }
 };
@@ -355,7 +372,11 @@ export const clearAllFocusData = async (): Promise<void> => {
       StorageKeys.CURRENT_SESSION,
     ]);
   } catch (error) {
-    console.error('Error clearing all Focus data:', error);
+    logger.error('Failed to clear all Focus data', {
+      component: 'storageService',
+      action: 'clearAllFocusData',
+      error,
+    });
     throw new Error('Failed to clear all Focus data');
   }
 };
@@ -388,7 +409,11 @@ export const getStorageStats = async (): Promise<{
       hasCurrentSession: currentSession !== null,
     };
   } catch (error) {
-    console.error('Error getting storage stats:', error);
+    logger.error('Failed to get storage stats', {
+      component: 'storageService',
+      action: 'getStorageStats',
+      error,
+    });
     return {
       totalSessions: 0,
       todaySessions: 0,
