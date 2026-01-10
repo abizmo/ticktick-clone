@@ -29,30 +29,7 @@ import notifee, {
 } from '@notifee/react-native';
 import {Platform} from 'react-native';
 
-// ============================================================================
-// Logger Utility
-// ============================================================================
-
-/**
- * Development-only logger
- * Prevents console.log statements in production builds
- */
-const logger = {
-  log: (...args: any[]): void => {
-    if (__DEV__) {
-      console.log(...args);
-    }
-  },
-  warn: (...args: any[]): void => {
-    if (__DEV__) {
-      console.warn(...args);
-    }
-  },
-  error: (...args: any[]): void => {
-    // Always log errors, even in production
-    console.error(...args);
-  },
-};
+import logger from '../utils/logger';
 
 // ============================================================================
 // Types
@@ -107,7 +84,10 @@ let permissionStatus: PermissionStatus = 'not-requested';
  */
 export const configure = async (): Promise<void> => {
   if (isConfigured) {
-    logger.log('[NotificationService] Already configured');
+    logger.info('Notification service already configured', {
+      component: 'notificationService',
+      action: 'configure',
+    });
     return;
   }
 
@@ -121,13 +101,23 @@ export const configure = async (): Promise<void> => {
         sound: 'default',
         vibration: true,
       });
-      logger.log('[NotificationService] Android channel created');
+      logger.info('Android notification channel created', {
+        component: 'notificationService',
+        action: 'configure',
+      });
     }
 
     isConfigured = true;
-    logger.log('[NotificationService] Configured successfully');
+    logger.info('Notification service configured successfully', {
+      component: 'notificationService',
+      action: 'configure',
+    });
   } catch (error) {
-    logger.error('[NotificationService] Configuration error:', error);
+    logger.error('Notification service configuration failed', {
+      component: 'notificationService',
+      action: 'configure',
+      error,
+    });
   }
 };
 
@@ -163,7 +153,11 @@ export const requestPermissions = async (): Promise<boolean> => {
   try {
     const settings = await notifee.requestPermission();
 
-    logger.log('[NotificationService] Permission settings:', settings);
+    logger.debug('Notification permission settings retrieved', {
+      component: 'notificationService',
+      action: 'requestPermissions',
+      data: {settings},
+    });
 
     // Check if permissions were granted
     const granted =
@@ -172,13 +166,19 @@ export const requestPermissions = async (): Promise<boolean> => {
 
     permissionStatus = granted ? 'granted' : 'denied';
 
-    logger.log(
-      `[NotificationService] Permission ${granted ? 'granted' : 'denied'}`,
-    );
+    logger.info(`Notification permission ${granted ? 'granted' : 'denied'}`, {
+      component: 'notificationService',
+      action: 'requestPermissions',
+      data: {granted},
+    });
 
     return granted;
   } catch (error) {
-    logger.error('[NotificationService] Permission request error:', error);
+    logger.error('Notification permission request failed', {
+      component: 'notificationService',
+      action: 'requestPermissions',
+      error,
+    });
     permissionStatus = 'denied';
     return false;
   }
@@ -204,7 +204,11 @@ export const checkPermissions = async (): Promise<PermissionStatus> => {
   try {
     const settings = await notifee.getNotificationSettings();
 
-    logger.log('[NotificationService] Current settings:', settings);
+    logger.debug('Current notification settings retrieved', {
+      component: 'notificationService',
+      action: 'checkPermissions',
+      data: {settings},
+    });
 
     // Determine status
     const granted =
@@ -215,7 +219,11 @@ export const checkPermissions = async (): Promise<PermissionStatus> => {
 
     return permissionStatus;
   } catch (error) {
-    logger.error('[NotificationService] Check permissions error:', error);
+    logger.error('Failed to check notification permissions', {
+      component: 'notificationService',
+      action: 'checkPermissions',
+      error,
+    });
     return 'denied';
   }
 };
@@ -258,9 +266,10 @@ export const showLocalNotification = async (
 
   // Check permission status
   if (permissionStatus === 'denied') {
-    logger.warn(
-      '[NotificationService] Cannot show notification: permissions denied',
-    );
+    logger.warn('Cannot show notification: permissions denied', {
+      component: 'notificationService',
+      action: 'showLocalNotification',
+    });
     return;
   }
 
@@ -281,9 +290,18 @@ export const showLocalNotification = async (
       },
     });
 
-    logger.log('[NotificationService] Notification sent:', config.title);
+    logger.info('Local notification sent', {
+      component: 'notificationService',
+      action: 'showLocalNotification',
+      data: {title: config.title},
+    });
   } catch (error) {
-    logger.error('[NotificationService] Show notification error:', error);
+    logger.error('Failed to show local notification', {
+      component: 'notificationService',
+      action: 'showLocalNotification',
+      error,
+      data: {config},
+    });
   }
 };
 
@@ -299,9 +317,16 @@ export const showLocalNotification = async (
 export const cancelAllNotifications = async (): Promise<void> => {
   try {
     await notifee.cancelAllNotifications();
-    logger.log('[NotificationService] All notifications cancelled');
+    logger.info('All notifications cancelled', {
+      component: 'notificationService',
+      action: 'cancelAllNotifications',
+    });
   } catch (error) {
-    logger.error('[NotificationService] Cancel notifications error:', error);
+    logger.error('Failed to cancel all notifications', {
+      component: 'notificationService',
+      action: 'cancelAllNotifications',
+      error,
+    });
   }
 };
 
@@ -367,5 +392,8 @@ export const showBreakCompleteNotification = async (
  */
 export const cleanup = async (): Promise<void> => {
   await cancelAllNotifications();
-  logger.log('[NotificationService] Cleanup complete');
+  logger.info('Notification service cleanup complete', {
+    component: 'notificationService',
+    action: 'cleanup',
+  });
 };

@@ -125,6 +125,7 @@ const createMockTask = (overrides?: Partial<Task>): Task => {
  * Reset store to initial state
  */
 const resetStore = () => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const store = useFocusStore.getState();
   act(() => {
     useFocusStore.setState({
@@ -190,21 +191,15 @@ describe('focusStore', () => {
         pausesCount: session.pausesCount + 1,
       }));
 
-    jest
-      .spyOn(sessionService, 'calculateTotalDuration')
-      .mockReturnValue(1500);
+    jest.spyOn(sessionService, 'calculateTotalDuration').mockReturnValue(1500);
 
-    jest
-      .spyOn(sessionService, 'calculateTotalPomodoros')
-      .mockReturnValue(2);
+    jest.spyOn(sessionService, 'calculateTotalPomodoros').mockReturnValue(2);
 
     jest.spyOn(sessionService, 'countCompletedSessions').mockReturnValue(1);
 
     jest.spyOn(sessionService, 'countInterruptedSessions').mockReturnValue(0);
 
-    jest
-      .spyOn(storageService, 'saveFocusSession')
-      .mockResolvedValue(undefined);
+    jest.spyOn(storageService, 'saveFocusSession').mockResolvedValue(undefined);
 
     jest
       .spyOn(storageService, 'saveFocusSettings')
@@ -214,17 +209,13 @@ describe('focusStore', () => {
       .spyOn(storageService, 'saveCurrentSession')
       .mockResolvedValue(undefined);
 
-    jest
-      .spyOn(storageService, 'loadFocusSessions')
-      .mockResolvedValue([]);
+    jest.spyOn(storageService, 'loadFocusSessions').mockResolvedValue([]);
 
     jest
       .spyOn(storageService, 'loadFocusSettings')
       .mockResolvedValue(DEFAULT_FOCUS_SETTINGS);
 
-    jest
-      .spyOn(storageService, 'loadCurrentSession')
-      .mockResolvedValue(null);
+    jest.spyOn(storageService, 'loadCurrentSession').mockResolvedValue(null);
 
     jest
       .spyOn(notificationService, 'getPermissionStatus')
@@ -530,11 +521,9 @@ describe('focusStore', () => {
       });
 
       it('should set error state on failure', () => {
-        jest
-          .spyOn(mockTimerService, 'pause')
-          .mockImplementation(() => {
-            throw new Error('Timer error');
-          });
+        jest.spyOn(mockTimerService, 'pause').mockImplementation(() => {
+          throw new Error('Timer error');
+        });
 
         act(() => {
           useFocusStore.getState().pauseFocus();
@@ -580,11 +569,9 @@ describe('focusStore', () => {
       });
 
       it('should set error state on failure', () => {
-        jest
-          .spyOn(mockTimerService, 'resume')
-          .mockImplementation(() => {
-            throw new Error('Timer error');
-          });
+        jest.spyOn(mockTimerService, 'resume').mockImplementation(() => {
+          throw new Error('Timer error');
+        });
 
         act(() => {
           useFocusStore.getState().resumeFocus();
@@ -1399,7 +1386,7 @@ describe('focusStore', () => {
     it('should handle notification errors gracefully', async () => {
       // Mock notification to fail silently (as it does in real implementation)
       const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
-      
+
       jest
         .spyOn(notificationService, 'showWorkCompleteNotification')
         .mockImplementation(() => {
@@ -1414,7 +1401,7 @@ describe('focusStore', () => {
       // Should continue with phase transition even if notification fails
       const state = useFocusStore.getState();
       expect(state.timerState.currentPhase).toBe('shortBreak');
-      
+
       consoleErrorSpy.mockRestore();
     });
   });
@@ -1441,11 +1428,9 @@ describe('focusStore', () => {
     });
 
     it('should not crash on cleanup error', () => {
-      jest
-        .spyOn(mockTimerService, 'stop')
-        .mockImplementation(() => {
-          throw new Error('Cleanup error');
-        });
+      jest.spyOn(mockTimerService, 'stop').mockImplementation(() => {
+        throw new Error('Cleanup error');
+      });
 
       expect(() => {
         act(() => {

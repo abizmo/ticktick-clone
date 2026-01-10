@@ -23,6 +23,7 @@ import {
   Switch,
   TouchableOpacity,
   Alert,
+  AccessibilityInfo,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import {useFocusStore} from '../store/focusStore';
@@ -35,6 +36,8 @@ import {
   isValidPomosBeforeLongBreak,
   isValidMaxPauses,
 } from '../constants/defaults';
+import ErrorBoundary from '../components/ErrorBoundary';
+import logger from '../utils/logger';
 
 /**
  * Props for FocusSettingsScreen component
@@ -176,10 +179,29 @@ const FocusSettingsScreen: React.FC<FocusSettingsScreenProps> = ({
     if (isValid) {
       try {
         await updateSettings({pomoWorkDuration: workDuration});
+        AccessibilityInfo.announceForAccessibility(
+          `Work duration updated to ${workDuration} minutes`,
+        );
       } catch (error) {
-        // Error is handled by the store
-        console.error('Failed to update work duration:', error);
+        logger.error('Failed to update work duration', {
+          component: 'FocusSettingsScreen',
+          action: 'handleWorkDurationBlur',
+          error,
+          data: {workDuration},
+        });
+        Alert.alert(
+          'Error',
+          'Failed to save work duration. Please try again.',
+          [{text: 'OK'}],
+        );
+        AccessibilityInfo.announceForAccessibility(
+          'Failed to update work duration',
+        );
       }
+    } else {
+      AccessibilityInfo.announceForAccessibility(
+        `Invalid work duration. Please enter a value between ${VALIDATION_RANGES.workDuration.min} and ${VALIDATION_RANGES.workDuration.max} minutes`,
+      );
     }
   };
 
@@ -203,9 +225,29 @@ const FocusSettingsScreen: React.FC<FocusSettingsScreenProps> = ({
     if (isValid) {
       try {
         await updateSettings({pomoShortBreak: shortBreak});
+        AccessibilityInfo.announceForAccessibility(
+          `Short break duration updated to ${shortBreak} minutes`,
+        );
       } catch (error) {
-        console.error('Failed to update short break:', error);
+        logger.error('Failed to update short break', {
+          component: 'FocusSettingsScreen',
+          action: 'handleShortBreakBlur',
+          error,
+          data: {shortBreak},
+        });
+        Alert.alert(
+          'Error',
+          'Failed to save short break duration. Please try again.',
+          [{text: 'OK'}],
+        );
+        AccessibilityInfo.announceForAccessibility(
+          'Failed to update short break duration',
+        );
       }
+    } else {
+      AccessibilityInfo.announceForAccessibility(
+        `Invalid short break duration. Please enter a value between ${VALIDATION_RANGES.shortBreak.min} and ${VALIDATION_RANGES.shortBreak.max} minutes`,
+      );
     }
   };
 
@@ -229,9 +271,29 @@ const FocusSettingsScreen: React.FC<FocusSettingsScreenProps> = ({
     if (isValid) {
       try {
         await updateSettings({pomoLongBreak: longBreak});
+        AccessibilityInfo.announceForAccessibility(
+          `Long break duration updated to ${longBreak} minutes`,
+        );
       } catch (error) {
-        console.error('Failed to update long break:', error);
+        logger.error('Failed to update long break', {
+          component: 'FocusSettingsScreen',
+          action: 'handleLongBreakBlur',
+          error,
+          data: {longBreak},
+        });
+        Alert.alert(
+          'Error',
+          'Failed to save long break duration. Please try again.',
+          [{text: 'OK'}],
+        );
+        AccessibilityInfo.announceForAccessibility(
+          'Failed to update long break duration',
+        );
       }
+    } else {
+      AccessibilityInfo.announceForAccessibility(
+        `Invalid long break duration. Please enter a value between ${VALIDATION_RANGES.longBreak.min} and ${VALIDATION_RANGES.longBreak.max} minutes`,
+      );
     }
   };
 
@@ -255,9 +317,29 @@ const FocusSettingsScreen: React.FC<FocusSettingsScreenProps> = ({
     if (isValid) {
       try {
         await updateSettings({pomosBeforeLongBreak});
+        AccessibilityInfo.announceForAccessibility(
+          `Pomodoros before long break updated to ${pomosBeforeLongBreak}`,
+        );
       } catch (error) {
-        console.error('Failed to update pomodoros before long break:', error);
+        logger.error('Failed to update pomodoros before long break', {
+          component: 'FocusSettingsScreen',
+          action: 'handlePomosBeforeLongBreakBlur',
+          error,
+          data: {pomosBeforeLongBreak},
+        });
+        Alert.alert(
+          'Error',
+          'Failed to save pomodoros before long break. Please try again.',
+          [{text: 'OK'}],
+        );
+        AccessibilityInfo.announceForAccessibility(
+          'Failed to update pomodoros before long break',
+        );
       }
+    } else {
+      AccessibilityInfo.announceForAccessibility(
+        `Invalid value. Please enter a number between ${VALIDATION_RANGES.pomosBeforeLongBreak.min} and ${VALIDATION_RANGES.pomosBeforeLongBreak.max}`,
+      );
     }
   };
 
@@ -281,9 +363,29 @@ const FocusSettingsScreen: React.FC<FocusSettingsScreenProps> = ({
     if (isValid) {
       try {
         await updateSettings({maxPausesPerSession: maxPauses});
+        AccessibilityInfo.announceForAccessibility(
+          `Maximum pauses per session updated to ${maxPauses}`,
+        );
       } catch (error) {
-        console.error('Failed to update max pauses:', error);
+        logger.error('Failed to update max pauses', {
+          component: 'FocusSettingsScreen',
+          action: 'handleMaxPausesBlur',
+          error,
+          data: {maxPauses},
+        });
+        Alert.alert(
+          'Error',
+          'Failed to save maximum pauses. Please try again.',
+          [{text: 'OK'}],
+        );
+        AccessibilityInfo.announceForAccessibility(
+          'Failed to update maximum pauses',
+        );
       }
+    } else {
+      AccessibilityInfo.announceForAccessibility(
+        `Invalid value. Please enter a number between ${VALIDATION_RANGES.maxPauses.min} and ${VALIDATION_RANGES.maxPauses.max}`,
+      );
     }
   };
 
@@ -296,8 +398,24 @@ const FocusSettingsScreen: React.FC<FocusSettingsScreenProps> = ({
     setConfirmStop(value);
     try {
       await updateSettings({confirmStop: value});
+      AccessibilityInfo.announceForAccessibility(
+        `Confirm stop ${value ? 'enabled' : 'disabled'}`,
+      );
     } catch (error) {
-      console.error('Failed to update confirm stop:', error);
+      logger.error('Failed to update confirm stop', {
+        component: 'FocusSettingsScreen',
+        action: 'handleConfirmStopChange',
+        error,
+        data: {confirmStop: value},
+      });
+      Alert.alert(
+        'Error',
+        'Failed to save confirm stop setting. Please try again.',
+        [{text: 'OK'}],
+      );
+      AccessibilityInfo.announceForAccessibility(
+        'Failed to update confirm stop setting',
+      );
       // Revert on error
       setConfirmStop(!value);
     }
@@ -328,7 +446,16 @@ const FocusSettingsScreen: React.FC<FocusSettingsScreenProps> = ({
               setPomosBeforeLongBreakError(false);
               setMaxPausesError(false);
             } catch (error) {
-              console.error('Failed to restore defaults:', error);
+              logger.error('Failed to restore default settings', {
+                component: 'FocusSettingsScreen',
+                action: 'handleRestoreDefaults',
+                error,
+              });
+              Alert.alert(
+                'Error',
+                'Failed to restore default settings. Please try again.',
+                [{text: 'OK'}],
+              );
             }
           },
         },
@@ -337,118 +464,129 @@ const FocusSettingsScreen: React.FC<FocusSettingsScreenProps> = ({
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={navigation.goBack}
-          accessibilityLabel="Volver"
-          accessibilityRole="button">
-          <Icon name="chevron-back" size={24} color="#007AFF" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Focus Settings</Text>
-      </View>
-
-      <ScrollView
-        style={styles.scrollContainer}
-        showsVerticalScrollIndicator={false}>
-        <SettingSection title="Duración de Intervalos">
-          <SettingInput
-            label="Trabajo"
-            value={workDuration}
-            onChangeText={handleWorkDurationChange}
-            onBlur={handleWorkDurationBlur}
-            hint={`${VALIDATION_RANGES.workDuration.min}-${VALIDATION_RANGES.workDuration.max} minutos`}
-            hasError={workDurationError}
-            accessibilityLabel="Duración del trabajo en minutos"
-            accessibilityHint={`Debe estar entre ${VALIDATION_RANGES.workDuration.min} y ${VALIDATION_RANGES.workDuration.max} minutos`}
-          />
-
-          <SettingInput
-            label="Descanso corto"
-            value={shortBreak}
-            onChangeText={handleShortBreakChange}
-            onBlur={handleShortBreakBlur}
-            hint={`${VALIDATION_RANGES.shortBreak.min}-${VALIDATION_RANGES.shortBreak.max} minutos`}
-            hasError={shortBreakError}
-            accessibilityLabel="Duración del descanso corto en minutos"
-            accessibilityHint={`Debe estar entre ${VALIDATION_RANGES.shortBreak.min} y ${VALIDATION_RANGES.shortBreak.max} minutos`}
-          />
-
-          <SettingInput
-            label="Descanso largo"
-            value={longBreak}
-            onChangeText={handleLongBreakChange}
-            onBlur={handleLongBreakBlur}
-            hint={`${VALIDATION_RANGES.longBreak.min}-${VALIDATION_RANGES.longBreak.max} minutos`}
-            hasError={longBreakError}
-            accessibilityLabel="Duración del descanso largo en minutos"
-            accessibilityHint={`Debe estar entre ${VALIDATION_RANGES.longBreak.min} y ${VALIDATION_RANGES.longBreak.max} minutos`}
-          />
-        </SettingSection>
-
-        <SettingSection title="Configuración de Pomodoro">
-          <SettingInput
-            label="Pomodoros antes de descanso largo"
-            value={pomosBeforeLongBreak}
-            onChangeText={handlePomosBeforeLongBreakChange}
-            onBlur={handlePomosBeforeLongBreakBlur}
-            hint={`${VALIDATION_RANGES.pomosBeforeLongBreak.min}-${VALIDATION_RANGES.pomosBeforeLongBreak.max} pomodoros`}
-            hasError={pomosBeforeLongBreakError}
-            accessibilityLabel="Número de pomodoros antes del descanso largo"
-            accessibilityHint={`Debe estar entre ${VALIDATION_RANGES.pomosBeforeLongBreak.min} y ${VALIDATION_RANGES.pomosBeforeLongBreak.max}`}
-          />
-
-          <SettingInput
-            label="Máximo de pausas"
-            value={maxPauses}
-            onChangeText={handleMaxPausesChange}
-            onBlur={handleMaxPausesBlur}
-            hint={`${VALIDATION_RANGES.maxPauses.min}-${VALIDATION_RANGES.maxPauses.max} pausas por sesión`}
-            hasError={maxPausesError}
-            accessibilityLabel="Máximo número de pausas por sesión"
-            accessibilityHint={`Debe estar entre ${VALIDATION_RANGES.maxPauses.min} y ${VALIDATION_RANGES.maxPauses.max}`}
-          />
-        </SettingSection>
-
-        <SettingSection title="Preferencias">
-          <View style={styles.settingItem}>
-            <View style={styles.settingContent}>
-              <View style={styles.settingText}>
-                <Text style={styles.settingTitle}>
-                  Confirmar al detener sesión
-                </Text>
-                <Text style={styles.settingSubtitle}>
-                  Pedir confirmación antes de detener una sesión activa
-                </Text>
-              </View>
-            </View>
-            <Switch
-              value={confirmStop}
-              onValueChange={handleConfirmStopChange}
-              trackColor={{false: '#e1e1e1', true: '#007AFF'}}
-              thumbColor={confirmStop ? '#fff' : '#f4f3f4'}
-              accessibilityLabel="Confirmar al detener sesión"
-              accessibilityHint="Activa o desactiva la confirmación antes de detener una sesión"
-              accessibilityRole="switch"
-            />
-          </View>
-        </SettingSection>
-
-        <View style={styles.bottomSection}>
+    <ErrorBoundary
+      onError={(error, errorInfo) => {
+        logger.error('FocusSettingsScreen error caught by ErrorBoundary', {
+          component: 'FocusSettingsScreen',
+          action: 'render',
+          error,
+          data: {componentStack: errorInfo.componentStack},
+        });
+      }}>
+      <SafeAreaView style={styles.container}>
+        <View style={styles.header}>
           <TouchableOpacity
-            style={styles.restoreButton}
-            onPress={handleRestoreDefaults}
-            accessibilityLabel="Restaurar valores por defecto"
-            accessibilityHint="Restaura todas las configuraciones a sus valores por defecto"
+            style={styles.backButton}
+            onPress={navigation.goBack}
+            accessibilityLabel="Volver"
             accessibilityRole="button">
-            <Text style={styles.restoreButtonText}>
-              Restaurar valores por defecto
-            </Text>
+            <Icon name="chevron-back" size={24} color="#007AFF" />
           </TouchableOpacity>
+          <Text style={styles.headerTitle}>Focus Settings</Text>
         </View>
-      </ScrollView>
-    </SafeAreaView>
+
+        <ScrollView
+          style={styles.scrollContainer}
+          showsVerticalScrollIndicator={false}>
+          <SettingSection title="Duración de Intervalos">
+            <SettingInput
+              label="Trabajo"
+              value={workDuration}
+              onChangeText={handleWorkDurationChange}
+              onBlur={handleWorkDurationBlur}
+              hint={`${VALIDATION_RANGES.workDuration.min}-${VALIDATION_RANGES.workDuration.max} minutos`}
+              hasError={workDurationError}
+              accessibilityLabel="Duración del trabajo en minutos"
+              accessibilityHint={`Debe estar entre ${VALIDATION_RANGES.workDuration.min} y ${VALIDATION_RANGES.workDuration.max} minutos`}
+            />
+
+            <SettingInput
+              label="Descanso corto"
+              value={shortBreak}
+              onChangeText={handleShortBreakChange}
+              onBlur={handleShortBreakBlur}
+              hint={`${VALIDATION_RANGES.shortBreak.min}-${VALIDATION_RANGES.shortBreak.max} minutos`}
+              hasError={shortBreakError}
+              accessibilityLabel="Duración del descanso corto en minutos"
+              accessibilityHint={`Debe estar entre ${VALIDATION_RANGES.shortBreak.min} y ${VALIDATION_RANGES.shortBreak.max} minutos`}
+            />
+
+            <SettingInput
+              label="Descanso largo"
+              value={longBreak}
+              onChangeText={handleLongBreakChange}
+              onBlur={handleLongBreakBlur}
+              hint={`${VALIDATION_RANGES.longBreak.min}-${VALIDATION_RANGES.longBreak.max} minutos`}
+              hasError={longBreakError}
+              accessibilityLabel="Duración del descanso largo en minutos"
+              accessibilityHint={`Debe estar entre ${VALIDATION_RANGES.longBreak.min} y ${VALIDATION_RANGES.longBreak.max} minutos`}
+            />
+          </SettingSection>
+
+          <SettingSection title="Configuración de Pomodoro">
+            <SettingInput
+              label="Pomodoros antes de descanso largo"
+              value={pomosBeforeLongBreak}
+              onChangeText={handlePomosBeforeLongBreakChange}
+              onBlur={handlePomosBeforeLongBreakBlur}
+              hint={`${VALIDATION_RANGES.pomosBeforeLongBreak.min}-${VALIDATION_RANGES.pomosBeforeLongBreak.max} pomodoros`}
+              hasError={pomosBeforeLongBreakError}
+              accessibilityLabel="Número de pomodoros antes del descanso largo"
+              accessibilityHint={`Debe estar entre ${VALIDATION_RANGES.pomosBeforeLongBreak.min} y ${VALIDATION_RANGES.pomosBeforeLongBreak.max}`}
+            />
+
+            <SettingInput
+              label="Máximo de pausas"
+              value={maxPauses}
+              onChangeText={handleMaxPausesChange}
+              onBlur={handleMaxPausesBlur}
+              hint={`${VALIDATION_RANGES.maxPauses.min}-${VALIDATION_RANGES.maxPauses.max} pausas por sesión`}
+              hasError={maxPausesError}
+              accessibilityLabel="Máximo número de pausas por sesión"
+              accessibilityHint={`Debe estar entre ${VALIDATION_RANGES.maxPauses.min} y ${VALIDATION_RANGES.maxPauses.max}`}
+            />
+          </SettingSection>
+
+          <SettingSection title="Preferencias">
+            <View style={styles.settingItem}>
+              <View style={styles.settingContent}>
+                <View style={styles.settingText}>
+                  <Text style={styles.settingTitle}>
+                    Confirmar al detener sesión
+                  </Text>
+                  <Text style={styles.settingSubtitle}>
+                    Pedir confirmación antes de detener una sesión activa
+                  </Text>
+                </View>
+              </View>
+              <Switch
+                value={confirmStop}
+                onValueChange={handleConfirmStopChange}
+                trackColor={{false: '#e1e1e1', true: '#007AFF'}}
+                thumbColor={confirmStop ? '#fff' : '#f4f3f4'}
+                accessibilityLabel="Confirmar al detener sesión"
+                accessibilityHint="Activa o desactiva la confirmación antes de detener una sesión"
+                accessibilityRole="switch"
+                accessibilityState={{checked: confirmStop}}
+              />
+            </View>
+          </SettingSection>
+
+          <View style={styles.bottomSection}>
+            <TouchableOpacity
+              style={styles.restoreButton}
+              onPress={handleRestoreDefaults}
+              accessibilityLabel="Restaurar valores por defecto"
+              accessibilityHint="Restaura todas las configuraciones a sus valores por defecto"
+              accessibilityRole="button">
+              <Text style={styles.restoreButtonText}>
+                Restaurar valores por defecto
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </SafeAreaView>
+    </ErrorBoundary>
   );
 };
 

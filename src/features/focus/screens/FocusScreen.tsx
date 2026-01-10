@@ -23,7 +23,9 @@ import {
   TaskSelector,
   PomodoroProgress,
   SessionHistory,
+  ErrorBoundary,
 } from '../components';
+import logger from '../utils/logger';
 
 /**
  * Props for FocusScreen
@@ -60,11 +62,37 @@ const FocusScreen: React.FC<FocusScreenProps> = ({
   const loadSessions = useFocusStore(state => state.loadSessions);
   const selectTask = useFocusStore(state => state.selectTask);
 
-  // Load sessions and handle task pre-selection when component mounts
+  // Load sessions on mount
   useEffect(() => {
-    loadSessions();
+    // Flag to track if component is still mounted
+    let isMounted = true;
 
-    // Pre-select task if taskId is provided via navigation
+    // Async function to load sessions with cancellation support (Issue #27)
+    const loadData = async () => {
+      await loadSessions();
+    };
+
+    // Start loading (don't await to avoid blocking)
+    loadData().catch(error => {
+      // Only log error if component is still mounted
+      if (isMounted) {
+        logger.error('Failed to load sessions on mount', {
+          component: 'FocusScreen',
+          action: 'loadData',
+          error,
+        });
+      }
+    });
+
+    // Cleanup function to prevent memory leaks (Issue #27)
+    return () => {
+      isMounted = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run on mount
+
+  // Handle task pre-selection from navigation params
+  useEffect(() => {
     const taskId = route?.params?.taskId;
     if (taskId) {
       const task = mockTasks.find(t => t.id === taskId);
@@ -75,55 +103,83 @@ const FocusScreen: React.FC<FocusScreenProps> = ({
         }
       }
     }
-
-    // TODO: Add cleanup for async cancellation to prevent memory leaks
-    // when component unmounts before loadSessions completes.
-    // See GitHub issue for implementation in Phase 7.
-  }, [loadSessions, selectTask, route?.params?.taskId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [route?.params?.taskId]); // Only run when taskId changes
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.contentContainer}
-        showsVerticalScrollIndicator={false}
-        bounces={false}>
-        {/* Header Section */}
-        <View style={styles.header}>
-          <Text
-            style={styles.headerTitle}
-            accessibilityLabel="Focus screen header"
+    <ErrorBoundary
+      onError={(error, errorInfo) => {
+        logger.error('FocusScreen error caught by ErrorBoundary', {
+          component: 'FocusScreen',
+          action: 'render',
+          error,
+          data: {componentStack: errorInfo.componentStack},
+        });
+      }}>
+      <SafeAreaView style={styles.container}>
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.contentContainer}
+          showsVerticalScrollIndicator={false}
+          bounces={false}
+          accessible={true}
+          accessibilityLabel="Focus screen. Swipe up and down to navigate between timer, controls, and session history."
+          accessibilityRole="scrollbar">
+          {/* Header Section */}
+          <View
+            style={styles.header}
+            accessible={true}
             accessibilityRole="header">
-            Focus
-          </Text>
-        </View>
+            <Text
+              style={styles.headerTitle}
+              accessible={false}
+              importantForAccessibility="no">
+              Focus
+            </Text>
+          </View>
 
-        {/* Task Selection */}
-        <View style={styles.section}>
-          <TaskSelector />
-        </View>
+          {/* Task Selection */}
+          <View
+            style={styles.section}
+            accessible={true}
+            accessibilityLabel="Task selection section">
+            <TaskSelector />
+          </View>
 
-        {/* Main Timer Display */}
-        <View style={styles.timerSection}>
-          <Timer />
-        </View>
+          {/* Main Timer Display */}
+          <View
+            style={styles.timerSection}
+            accessible={true}
+            accessibilityLabel="Timer display section">
+            <Timer />
+          </View>
 
-        {/* Timer Control Buttons */}
-        <View style={styles.section}>
-          <TimerControls />
-        </View>
+          {/* Timer Control Buttons */}
+          <View
+            style={styles.section}
+            accessible={true}
+            accessibilityLabel="Timer controls section">
+            <TimerControls />
+          </View>
 
-        {/* Pomodoro Progress Indicator */}
-        <View style={styles.section}>
-          <PomodoroProgress />
-        </View>
+          {/* Pomodoro Progress Indicator */}
+          <View
+            style={styles.section}
+            accessible={true}
+            accessibilityLabel="Progress tracking section">
+            <PomodoroProgress />
+          </View>
 
-        {/* Session History List */}
-        <View style={styles.historyContainer}>
-          <SessionHistory />
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+          {/* Session History List */}
+          <View
+            style={styles.historyContainer}
+            accessible={true}
+            accessibilityLabel="Session history section">
+            <SessionHistory />
+          </View>
+        </ScrollView>
+      </SafeAreaView>
+    </ErrorBoundary>
   );
 };
 
@@ -153,7 +209,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#000000',
+    color: '#000000', // Keep black for headers as it has perfect contrast
     textAlign: 'center',
   },
   section: {

@@ -10,6 +10,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {FocusSettings, FocusSession, StorageKeys} from '../types/focus.types';
 import {DEFAULT_FOCUS_SETTINGS} from '../constants/defaults';
+import logger from '../utils/logger';
 
 // ============================================================================
 // Settings Operations
@@ -28,9 +29,32 @@ export const saveFocusSettings = async (
   try {
     const jsonValue = JSON.stringify(settings);
     await AsyncStorage.setItem(StorageKeys.FOCUS_SETTINGS, jsonValue);
+
+    logger.debug('Settings saved successfully', {
+      component: 'storageService',
+      action: 'saveFocusSettings',
+    });
   } catch (error) {
-    console.error('Error saving Focus settings:', error);
-    throw new Error('Failed to save Focus settings');
+    // Check for quota exceeded error
+    const isQuotaError =
+      error instanceof Error &&
+      (error.message.includes('quota') || error.message.includes('QUOTA'));
+
+    logger.error(
+      isQuotaError ? 'Storage quota exceeded' : 'Failed to save settings',
+      {
+        component: 'storageService',
+        action: 'saveFocusSettings',
+        error,
+        data: {isQuotaError},
+      },
+    );
+
+    throw new Error(
+      isQuotaError
+        ? 'Storage is full. Please free up space and try again.'
+        : 'Failed to save Focus settings',
+    );
   }
 };
 
@@ -45,15 +69,38 @@ export const loadFocusSettings = async (): Promise<FocusSettings | null> => {
     const jsonValue = await AsyncStorage.getItem(StorageKeys.FOCUS_SETTINGS);
 
     if (jsonValue === null) {
-      // No settings saved yet, return default settings
+      logger.debug('No saved settings found, using defaults', {
+        component: 'storageService',
+        action: 'loadFocusSettings',
+      });
       return DEFAULT_FOCUS_SETTINGS;
     }
 
     const settings = JSON.parse(jsonValue) as FocusSettings;
+
+    logger.debug('Settings loaded successfully', {
+      component: 'storageService',
+      action: 'loadFocusSettings',
+    });
+
     return settings;
   } catch (error) {
-    console.error('Error loading Focus settings:', error);
-    // Return default settings on error
+    // Check if it's a JSON parse error (corrupted data)
+    const isParseError = error instanceof SyntaxError;
+
+    logger.error(
+      isParseError
+        ? 'Corrupted settings data detected'
+        : 'Failed to load settings',
+      {
+        component: 'storageService',
+        action: 'loadFocusSettings',
+        error,
+        data: {isParseError},
+      },
+    );
+
+    // Return default settings on error (graceful degradation)
     return DEFAULT_FOCUS_SETTINGS;
   }
 };
@@ -80,12 +127,44 @@ export const saveFocusSession = async (
     // Add new session to the beginning of the array (most recent first)
     const updatedSessions = [session, ...existingSessions];
 
+    // Limit session history to prevent storage bloat (keep last 1000 sessions)
+    const MAX_SESSIONS = 1000;
+    const trimmedSessions = updatedSessions.slice(0, MAX_SESSIONS);
+
     // Save updated sessions array
-    const jsonValue = JSON.stringify(updatedSessions);
+    const jsonValue = JSON.stringify(trimmedSessions);
     await AsyncStorage.setItem(StorageKeys.FOCUS_SESSIONS, jsonValue);
+
+    logger.debug('Session saved successfully', {
+      component: 'storageService',
+      action: 'saveFocusSession',
+      data: {
+        sessionId: session.id,
+        totalSessions: trimmedSessions.length,
+        trimmed: updatedSessions.length > MAX_SESSIONS,
+      },
+    });
   } catch (error) {
-    console.error('Error saving Focus session:', error);
-    throw new Error('Failed to save Focus session');
+    // Check for quota exceeded error
+    const isQuotaError =
+      error instanceof Error &&
+      (error.message.includes('quota') || error.message.includes('QUOTA'));
+
+    logger.error(
+      isQuotaError ? 'Storage quota exceeded' : 'Failed to save session',
+      {
+        component: 'storageService',
+        action: 'saveFocusSession',
+        error,
+        data: {sessionId: session.id, isQuotaError},
+      },
+    );
+
+    throw new Error(
+      isQuotaError
+        ? 'Storage is full. Please free up space and try again.'
+        : 'Failed to save Focus session',
+    );
   }
 };
 
@@ -103,6 +182,10 @@ export const loadFocusSessions = async (
     const jsonValue = await AsyncStorage.getItem(StorageKeys.FOCUS_SESSIONS);
 
     if (jsonValue === null) {
+      logger.debug('No saved sessions found', {
+        component: 'storageService',
+        action: 'loadFocusSessions',
+      });
       return [];
     }
 
@@ -122,9 +205,30 @@ export const loadFocusSessions = async (
       sessions = sessions.slice(0, limit);
     }
 
+    logger.debug('Sessions loaded successfully', {
+      component: 'storageService',
+      action: 'loadFocusSessions',
+      data: {count: sessions.length, limited: !!limit},
+    });
+
     return sessions;
   } catch (error) {
-    console.error('Error loading Focus sessions:', error);
+    // Check if it's a JSON parse error (corrupted data)
+    const isParseError = error instanceof SyntaxError;
+
+    logger.error(
+      isParseError
+        ? 'Corrupted session data detected'
+        : 'Failed to load sessions',
+      {
+        component: 'storageService',
+        action: 'loadFocusSessions',
+        error,
+        data: {isParseError},
+      },
+    );
+
+    // Return empty array on error (graceful degradation)
     return [];
   }
 };
@@ -155,7 +259,11 @@ export const getTodaySessions = async (): Promise<FocusSession[]> => {
 
     return todaySessions;
   } catch (error) {
-    console.error("Error getting today's sessions:", error);
+    logger.error("Failed to get today's sessions", {
+      component: 'storageService',
+      action: 'getTodaySessions',
+      error,
+    });
     return [];
   }
 };
@@ -171,7 +279,11 @@ export const clearAllSessions = async (): Promise<void> => {
   try {
     await AsyncStorage.removeItem(StorageKeys.FOCUS_SESSIONS);
   } catch (error) {
-    console.error('Error clearing Focus sessions:', error);
+    logger.error('Failed to clear Focus sessions', {
+      component: 'storageService',
+      action: 'clearAllSessions',
+      error,
+    });
     throw new Error('Failed to clear Focus sessions');
   }
 };
@@ -198,7 +310,12 @@ export const saveCurrentSession = async (
       await AsyncStorage.setItem(StorageKeys.CURRENT_SESSION, jsonValue);
     }
   } catch (error) {
-    console.error('Error saving current session:', error);
+    logger.error('Failed to save current session', {
+      component: 'storageService',
+      action: 'saveCurrentSession',
+      error,
+      data: {sessionId: session?.id},
+    });
     throw new Error('Failed to save current session');
   }
 };
@@ -227,7 +344,11 @@ export const loadCurrentSession = async (): Promise<FocusSession | null> => {
       updatedAt: new Date(session.updatedAt),
     };
   } catch (error) {
-    console.error('Error loading current session:', error);
+    logger.error('Failed to load current session', {
+      component: 'storageService',
+      action: 'loadCurrentSession',
+      error,
+    });
     return null;
   }
 };
@@ -251,7 +372,11 @@ export const clearAllFocusData = async (): Promise<void> => {
       StorageKeys.CURRENT_SESSION,
     ]);
   } catch (error) {
-    console.error('Error clearing all Focus data:', error);
+    logger.error('Failed to clear all Focus data', {
+      component: 'storageService',
+      action: 'clearAllFocusData',
+      error,
+    });
     throw new Error('Failed to clear all Focus data');
   }
 };
@@ -284,7 +409,11 @@ export const getStorageStats = async (): Promise<{
       hasCurrentSession: currentSession !== null,
     };
   } catch (error) {
-    console.error('Error getting storage stats:', error);
+    logger.error('Failed to get storage stats', {
+      component: 'storageService',
+      action: 'getStorageStats',
+      error,
+    });
     return {
       totalSessions: 0,
       todaySessions: 0,

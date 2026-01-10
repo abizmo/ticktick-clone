@@ -9,7 +9,7 @@
  */
 
 import React from 'react';
-import {render} from '@testing-library/react-native';
+import {render, waitFor} from '@testing-library/react-native';
 import FocusScreen from '../../src/features/focus/screens/FocusScreen';
 import {useFocusStore} from '../../src/features/focus/store/focusStore';
 import {mockTasks} from '../../src/data/mockData';
@@ -45,6 +45,7 @@ jest.mock('../../src/features/focus/components', () => {
         {testID: 'session-history'},
         'SessionHistory',
       ),
+    ErrorBoundary: ({children}: {children: any}) => children,
   };
 });
 
@@ -136,22 +137,27 @@ describe('FocusScreen', () => {
   });
 
   describe('Accessibility', () => {
-    it('should have header with accessibility label', () => {
-      const {getByLabelText} = render(<FocusScreen />);
-      const header = getByLabelText('Focus screen header');
-      expect(header).toBeTruthy();
-    });
-
     it('should have header with accessibility role', () => {
       const {getByRole} = render(<FocusScreen />);
       const header = getByRole('header');
       expect(header).toBeTruthy();
     });
 
-    it('should have accessible header text', () => {
+    it('should have accessible scroll view with label', () => {
       const {getByLabelText} = render(<FocusScreen />);
-      const header = getByLabelText('Focus screen header');
-      expect(header.props.children).toBe('Focus');
+      const scrollView = getByLabelText(
+        'Focus screen. Swipe up and down to navigate between timer, controls, and session history.',
+      );
+      expect(scrollView).toBeTruthy();
+    });
+
+    it('should have section groups with accessibility labels', () => {
+      const {getByLabelText} = render(<FocusScreen />);
+      expect(getByLabelText('Task selection section')).toBeTruthy();
+      expect(getByLabelText('Timer display section')).toBeTruthy();
+      expect(getByLabelText('Timer controls section')).toBeTruthy();
+      expect(getByLabelText('Progress tracking section')).toBeTruthy();
+      expect(getByLabelText('Session history section')).toBeTruthy();
     });
   });
 
@@ -229,9 +235,10 @@ describe('FocusScreen', () => {
   });
 
   describe('Edge Cases', () => {
-    it('should handle loadSessions errors gracefully', () => {
+    it('should handle loadSessions errors gracefully', async () => {
+      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
       const mockLoadSessionsWithError = jest.fn(() => {
-        throw new Error('Load sessions failed');
+        return Promise.reject(new Error('Load sessions failed'));
       });
 
       (useFocusStore as unknown as jest.Mock).mockImplementation(selector =>
@@ -241,7 +248,23 @@ describe('FocusScreen', () => {
         }),
       );
 
-      expect(() => render(<FocusScreen />)).toThrow('Load sessions failed');
+      // Component should render without throwing (graceful error handling)
+      render(<FocusScreen />);
+      expect(mockLoadSessionsWithError).toHaveBeenCalled();
+
+      // Wait for async error to be logged
+      await waitFor(() => {
+        // Logger format: [timestamp] [ERROR] [component] [action] message
+        expect(consoleErrorSpy).toHaveBeenCalledWith(
+          expect.stringContaining('[ERROR]'),
+        );
+        expect(consoleErrorSpy).toHaveBeenCalledWith(
+          'Error details:',
+          expect.any(Error),
+        );
+      });
+
+      consoleErrorSpy.mockRestore();
     });
 
     it('should render with valid store configuration', () => {
@@ -728,8 +751,8 @@ describe('FocusScreen', () => {
     it('should handle null task gracefully', () => {
       const route = {
         params: {
-          taskId: null,
-          taskTitle: null,
+          taskId: undefined,
+          taskTitle: undefined,
         },
       };
 

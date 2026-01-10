@@ -18,7 +18,10 @@ import {
   getTotalCycleDuration,
   getPhaseName,
 } from '../../../../src/features/focus/utils/pomodoroCalculator';
-import {FocusSettings, PomodoroPhase} from '../../../../src/features/focus/types/focus.types';
+import {
+  FocusSettings,
+  PomodoroPhase,
+} from '../../../../src/features/focus/types/focus.types';
 
 // ============================================================================
 // Test Fixtures
@@ -121,7 +124,11 @@ describe('pomodoroCalculator', () => {
 
     describe('edge cases', () => {
       it('should handle invalid phase by defaulting to work', () => {
-        const result = getNextPhase('invalid' as PomodoroPhase, 1, defaultSettings);
+        const result = getNextPhase(
+          'invalid' as PomodoroPhase,
+          1,
+          defaultSettings,
+        );
         expect(result).toBe('work');
       });
 
@@ -174,7 +181,10 @@ describe('pomodoroCalculator', () => {
 
     describe('edge cases', () => {
       it('should handle invalid phase by defaulting to work duration', () => {
-        const result = getPhaseDuration('invalid' as PomodoroPhase, defaultSettings);
+        const result = getPhaseDuration(
+          'invalid' as PomodoroPhase,
+          defaultSettings,
+        );
         expect(result).toBe(25 * 60);
       });
 
